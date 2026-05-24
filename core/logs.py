@@ -1,4 +1,4 @@
-## Salvar e carregar Logs - core/logs.py
+# Salvar e carregar Logs - core/logs.py
 
 import json
 import os
@@ -13,13 +13,13 @@ APPDATA_DIR = os.path.join(
 # Arquivo de logs
 LOG_FILE = os.path.join(APPDATA_DIR, "logs_sistema.json")
 
-# Garante criação da pasta
+# Cria pasta automaticamente
 os.makedirs(APPDATA_DIR, exist_ok=True)
 
 
 def carregar_logs():
     """
-    Carrega logs salvos do sistema.
+    Carrega logs do sistema.
     """
 
     if not os.path.exists(LOG_FILE):
@@ -27,31 +27,34 @@ def carregar_logs():
 
     try:
         with open(LOG_FILE, "r", encoding="utf-8") as arquivo:
-            data = json.load(arquivo)
-
-        return data.get("logs", [])
+            return json.load(arquivo)
 
     except Exception as erro:
         print(f"Erro ao carregar logs: {erro}")
         return []
 
 
-def registrar_evento(usuario, logs_historico, mensagem):
+def registrar_evento(usuario, mensagem):
     """
-    Registra evento no histórico do sistema.
+    Registra evento no sistema.
     """
 
     try:
-        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        logs_historico.append(
-            f"[{timestamp}] Usuário: {usuario} | {mensagem}"
-        )
+        logs_historico = carregar_logs()
+
+        novo_log = {
+            "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "usuario": usuario,
+            "evento": mensagem
+        }
+
+        logs_historico.append(novo_log)
 
         with open(LOG_FILE, "w", encoding="utf-8") as arquivo:
 
             json.dump(
-                {"logs": logs_historico},
+                logs_historico,
                 arquivo,
                 ensure_ascii=False,
                 indent=4
