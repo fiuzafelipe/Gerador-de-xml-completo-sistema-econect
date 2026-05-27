@@ -725,6 +725,72 @@ class FiuzaEnterpriseApp(ctk.CTk):
         self.trocar_img_dinamica()
 
     # =========================================================
+    # PLACEHOLDER INTELIGENTE
+    # =========================================================
+
+    def configurar_placeholder(
+        self,
+        entry,
+        texto_placeholder,
+        senha=False
+    ):
+
+        # =====================================
+        # TEXTO INICIAL
+        # =====================================
+
+        entry.insert(0, texto_placeholder)
+
+        # Campo senha inicia SEM máscara
+        if senha:
+            entry.configure(show="*")
+
+        # =====================================
+        # AO CLICAR
+        # =====================================
+
+        def ao_entrar(event):
+
+            if entry.get() == texto_placeholder:
+
+                entry.delete(0, "end")
+
+                # Ativa máscara
+                if senha:
+                    entry.configure(show="*")
+
+        # =====================================
+        # AO SAIR
+        # =====================================
+
+        def ao_sair(event):
+
+            # Se vazio → restaura placeholder
+            if entry.get().strip() == "":
+
+                entry.delete(0, "end")
+
+                entry.insert(0, texto_placeholder)
+
+                # Remove máscara para mostrar placeholder
+                if senha:
+                    entry.configure(show="*")
+
+            else:
+
+                # Se digitou algo → mantém máscara
+                if senha:
+                    entry.configure(show="*")
+
+        # =====================================
+        # EVENTOS
+        # =====================================
+
+        entry.bind("<FocusIn>", ao_entrar)
+
+        entry.bind("<FocusOut>", ao_sair)
+
+    # =========================================================
     # CAMPOS
     # =========================================================
 
@@ -747,12 +813,13 @@ class FiuzaEnterpriseApp(ctk.CTk):
             text_color="#000000" if self.config_app["tema_cor"] != "dark" else "#FFFFFF",
         )
 
-        if secret:
-            e.configure(show="*")
-
-        e.insert(0, placeholder)
-
         e.pack(pady=5)
+
+        self.configurar_placeholder(
+            e,
+            placeholder,
+            senha=secret
+        )
 
         return e
 
@@ -777,17 +844,18 @@ class FiuzaEnterpriseApp(ctk.CTk):
             text_color="#000000" if self.config_app["tema_cor"] != "dark" else "#FFFFFF",
         )
 
-        if secret:
-            e.configure(show="*")
-
-        e.insert(0, placeholder)
-
         e.grid(
             row=row,
             column=col,
             sticky="w",
             padx=20,
             pady=6
+        )
+
+        self.configurar_placeholder(
+            e,
+            placeholder,
+            senha=secret
         )
 
         return e
@@ -813,11 +881,14 @@ class FiuzaEnterpriseApp(ctk.CTk):
             text_color="#000000" if self.config_app["tema_cor"] != "dark" else "#FFFFFF",
         )
 
-        e.insert(0, placeholder)
-
         e.pack(
             side=side,
             padx=padx
+        )
+
+        self.configurar_placeholder(
+            e,
+            placeholder
         )
 
         return e
