@@ -1,1 +1,5 @@
+# ==========================================
+# BIBLIOTECA PARA INSTALAR PYTHON
+# ==========================================
+
 pip install customtkinter Pillow mysql-connector-python pymysql pyinstaller
