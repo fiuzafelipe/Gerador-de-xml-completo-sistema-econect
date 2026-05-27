@@ -3,7 +3,7 @@ import shutil
 import subprocess
 from tkinter import messagebox
 
-# Responsável pela compactação.
+# Responsável pela compactação. 
 
 class Compression:
 
