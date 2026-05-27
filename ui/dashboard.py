@@ -67,7 +67,11 @@ class DashboardApp(ctk.CTkToplevel):
 
         self.geometry("1100x720")
 
+        # Habilita maximizar
         self.resizable(True, True)
+
+        # Alinhado acima
+        self.after(100, self.posicionar_janela)
 
         # =====================================================
         # FONTES
@@ -135,6 +139,26 @@ class DashboardApp(ctk.CTkToplevel):
         registrar_evento(
             f"Dashboard iniciada: {usuario}"
         )
+
+    # =========================================================
+    # POSICIONAR JANELA
+    # =========================================================
+
+    def posicionar_janela(self):
+
+        self.update_idletasks()
+
+        largura = 1100
+        altura = 720
+
+        x = int(
+            (self.winfo_screenwidth() / 2) - (largura / 2)
+        )
+
+        # MAIS PARA CIMA
+        y = 0
+
+        self.geometry(f"{largura}x{altura}+{x}+{y}")
 
     # =========================================================
     # LABEL AUXILIAR
