@@ -1032,7 +1032,7 @@ class FiuzaEnterpriseApp(ctk.CTk):
 
             from ui.dashboard import DashboardApp
 
-            self.destroy()
+            self.withdraw()
 
             dashboard = DashboardApp(
                 self,
