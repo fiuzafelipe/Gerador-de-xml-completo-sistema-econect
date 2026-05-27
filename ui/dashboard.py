@@ -224,8 +224,13 @@ class DashboardApp(ctk.CTkToplevel):
     def fechar_dashboard(self):
 
         try:
-
             self.db_conexao.close()
+
+        except:
+            pass
+
+        try:
+            self.master.deiconify()
 
         except:
             pass
