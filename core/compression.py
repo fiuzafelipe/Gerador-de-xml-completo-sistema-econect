@@ -5,6 +5,41 @@ from tkinter import messagebox
 
 # Responsável pela compactação.
 
+class Compression:
+
+    def solicitar_compactacao(self, destino):
+
+        if messagebox.askyesno(
+            "Compactar",
+            "Deseja compactar a pasta gerada agora?"
+        ):
+
+            try:
+
+                diretorio_pai = os.path.dirname(destino)
+
+                nome_base = os.path.basename(destino)
+
+                zip_base = os.path.join(diretorio_pai, nome_base + "_compactado")
+
+                zip_final = shutil.make_archive(
+                    zip_base,
+                    'zip',
+                    destino
+                )
+
+                messagebox.showinfo(
+                    "OK",
+                    f"Arquivo gerado:\n{zip_final}"
+                )
+
+            except Exception as e:
+
+                messagebox.showerror(
+                    "Erro",
+                    f"Compactação falhou:\n{e}"
+                )
+
 def compactar_com_winrar(caminho):
 
     possible_paths = [
@@ -38,19 +73,22 @@ def compactar_com_winrar(caminho):
     startupinfo = subprocess.STARTUPINFO()
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-    subprocess.run(
-        [
-            winrar,
-            "a",
-            "-r",
-            rar_final,
-            caminho
-        ],
-        check=True,
-        startupinfo=startupinfo
-    )
+    try:
+        subprocess.run(
+            [
+                winrar,
+                "a",
+                "-r",
+                rar_final,
+                caminho
+            ],
+            check=True,
+            startupinfo=startupinfo
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"WinRAR falhou: {e}")
+        )
 
-    return rar_final
+        return rar_final
 
 
 def compactar_zip(destino):
@@ -71,3 +109,4 @@ def compactar_zip(destino):
     )
 
     return zip_final
+    

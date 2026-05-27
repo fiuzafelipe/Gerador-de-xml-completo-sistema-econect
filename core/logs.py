@@ -34,19 +34,21 @@ def carregar_logs():
         return []
 
 
-def registrar_evento(usuario, mensagem):
+def registrar_evento(mensagem):
     """
     Registra evento no sistema.
     """
+    data = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    
+    print(f"[{data}] {mensagem}")
 
     try:
 
         logs_historico = carregar_logs()
 
         novo_log = {
-            "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "usuario": usuario,
-            "evento": mensagem
+        "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "evento": mensagem
         }
 
         logs_historico.append(novo_log)

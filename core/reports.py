@@ -1,8 +1,10 @@
 import os
+import logging
+logging.exception("Erro ao salvar relatório")
 
 # Responsável pelos relatórios.
 
-def salvar_relatorio_numeração(
+def salvar_relatorio_numeracao(
     destino,
     num_loj,
     relatorio_final
@@ -22,7 +24,7 @@ def salvar_relatorio_numeração(
     ) as f:
 
         f.write(
-            "\n".join(relatorio_final)
+            "\n".join(str(x) for x in relatorio_final or [])
         )
 
     return caminho_relatorio
