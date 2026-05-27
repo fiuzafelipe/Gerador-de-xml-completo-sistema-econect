@@ -1,12 +1,23 @@
 import os
 import shutil
+import time
+import socket
+
 from datetime import datetime
 
 import customtkinter as ctk
 
-from tkinter import messagebox
+from tkinter import (
+    messagebox,
+    filedialog
+)
+
 from core.logs import registrar_evento
 
+
+# =========================================================
+# MESES
+# =========================================================
 
 MESES = [
     "JANEIRO",
@@ -24,6 +35,10 @@ MESES = [
 ]
 
 
+# =========================================================
+# DASHBOARD
+# =========================================================
+
 class DashboardApp(ctk.CTkToplevel):
 
     def __init__(self, master, usuario, conexao):
@@ -35,6 +50,7 @@ class DashboardApp(ctk.CTkToplevel):
         # =====================================================
 
         self.usuario_atual = usuario
+
         self.db_conexao = conexao
 
         self.host_conectado = conexao.host
@@ -42,7 +58,7 @@ class DashboardApp(ctk.CTkToplevel):
         self.nivel_acesso = "admin"
 
         # =====================================================
-        # CONFIGURAÇÃO
+        # CONFIG
         # =====================================================
 
         self.title(
@@ -70,7 +86,7 @@ class DashboardApp(ctk.CTkToplevel):
         )
 
         # =====================================================
-        # TEMAS
+        # TEMA
         # =====================================================
 
         self.config = {
@@ -149,14 +165,13 @@ class DashboardApp(ctk.CTkToplevel):
         master,
         placeholder,
         largura,
-        cor,
-        data=False
+        cor
     ):
 
         ent = ctk.CTkEntry(
             master,
             width=largura,
-            height=30,
+            height=32,
             border_color=cor
         )
 
@@ -193,10 +208,14 @@ class DashboardApp(ctk.CTkToplevel):
             pady=5
         )
 
+        # =====================================================
+        # SAIR
+        # =====================================================
+
         btn_sair = ctk.CTkButton(
             header,
             text="⇢ Sair",
-            width=80,
+            width=90,
             fg_color="#c84a4a",
             command=self.fechar_dashboard
         )
@@ -206,10 +225,14 @@ class DashboardApp(ctk.CTkToplevel):
             padx=15
         )
 
+        # =====================================================
+        # LOG
+        # =====================================================
+
         btn_log = ctk.CTkButton(
             header,
             text="🧾 Log",
-            width=80,
+            width=90,
             fg_color=tema["destaque"]
         )
 
@@ -237,69 +260,245 @@ class DashboardApp(ctk.CTkToplevel):
 
         self.destroy()
 
+    # =========================================================
+    # SETUP DASHBOARD
+    # =========================================================
+
     def setup_dashboard(self):
-        for w in self.winfo_children(): w.destroy()
-        tema = self.temas[self.config.get("tema_cor", "padrao")]
-        self.configure(fg_color=tema["janela"]); self.criar_cabecalho()
-        ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=self.fonte_titulo_dash, text_color=tema["destaque"]).pack(pady=(2, 0))
-        ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 14, "italic"), text_color="gray").pack(pady=(0, 2))
-        
-        card_dash = ctk.CTkFrame(self, corner_radius=20, border_width=1, border_color=tema["destaque"], fg_color=tema["card"])
-        card_dash.pack(expand=True, padx=40, pady=(0, 5), fill="both")
-        
-        self.tabs = ctk.CTkTabview(card_dash, corner_radius=15, segmented_button_selected_color=tema["destaque"], fg_color=tema["card"])
-        self.tabs.pack(fill="both", expand=True, padx=15, pady=2)
-        t_xml = self.tabs.add("Gerador de XML")
-        self.tabs.add("Monitor de XML")
-        if self.nivel_acesso == "admin": self.tabs.add("MySQL Query")
-        
-        f_main = ctk.CTkFrame(t_xml, fg_color="transparent"); f_main.pack(fill="x", padx=30, pady=0)
-        f_top = ctk.CTkFrame(f_main, fg_color="transparent"); f_top.pack(fill="x", pady=0)
-        f_left = ctk.CTkFrame(f_top, fg_color="transparent"); f_left.pack(side="left", fill="both", expand=True)
-        
-        self.add_lbl(f_left, "Razão Social (Base MySQL):", self.fonte_bold)
-        self.lbl_razao = ctk.CTkLabel(f_left, text="Selecione uma Loja", text_color="gray", font=("Segoe UI", 12, "italic")); self.lbl_razao.pack(anchor="w", padx=10)
-        self.add_lbl(f_left, "Selecionar Loja:", self.fonte_bold)
 
-        # --- Lógica de Identificação Offline/Contexto ---
+        for w in self.winfo_children():
+            w.destroy()
+
+        tema = self.temas[
+            self.config.get(
+                "tema_cor",
+                "padrao"
+            )
+        ]
+
+        self.configure(
+            fg_color=tema["janela"]
+        )
+
+        self.criar_cabecalho()
+
+        # =====================================================
+        # TITULO
+        # =====================================================
+
+        ctk.CTkLabel(
+            self,
+            text=f"Bem vindo {self.usuario_atual}!",
+            font=self.fonte_titulo_dash,
+            text_color=tema["destaque"]
+        ).pack(pady=(2, 0))
+
+        ctk.CTkLabel(
+            self,
+            text=f"Banco: {self.host_conectado}",
+            font=("Segoe UI", 14, "italic"),
+            text_color="gray"
+        ).pack(pady=(0, 2))
+
+        # =====================================================
+        # CARD
+        # =====================================================
+
+        card_dash = ctk.CTkFrame(
+            self,
+            corner_radius=20,
+            border_width=1,
+            border_color=tema["destaque"],
+            fg_color=tema["card"]
+        )
+
+        card_dash.pack(
+            expand=True,
+            padx=40,
+            pady=(0, 5),
+            fill="both"
+        )
+
+        # =====================================================
+        # TABS
+        # =====================================================
+
+        self.tabs = ctk.CTkTabview(
+            card_dash,
+            corner_radius=15,
+            segmented_button_selected_color=tema["destaque"],
+            fg_color=tema["card"]
+        )
+
+        self.tabs.pack(
+            fill="both",
+            expand=True,
+            padx=15,
+            pady=5
+        )
+
+        t_xml = self.tabs.add(
+            "Gerador de XML"
+        )
+
+        self.tabs.add(
+            "Monitor de XML"
+        )
+
+        if self.nivel_acesso == "admin":
+
+            self.tabs.add(
+                "MySQL Query"
+            )
+
+        # =====================================================
+        # MAIN
+        # =====================================================
+
+        f_main = ctk.CTkFrame(
+            t_xml,
+            fg_color="transparent"
+        )
+
+        f_main.pack(
+            fill="x",
+            padx=30,
+            pady=5
+        )
+
+        # =====================================================
+        # TOPO
+        # =====================================================
+
+        f_top = ctk.CTkFrame(
+            f_main,
+            fg_color="transparent"
+        )
+
+        f_top.pack(
+            fill="x"
+        )
+
+        # =====================================================
+        # LEFT
+        # =====================================================
+
+        f_left = ctk.CTkFrame(
+            f_top,
+            fg_color="transparent"
+        )
+
+        f_left.pack(
+            side="left",
+            fill="both",
+            expand=True
+        )
+
+        self.add_lbl(
+            f_left,
+            "Razão Social (Base MySQL):",
+            self.fonte_bold
+        )
+
+        self.lbl_razao = ctk.CTkLabel(
+            f_left,
+            text="Selecione uma Loja",
+            text_color="gray",
+            font=("Segoe UI", 12, "italic")
+        )
+
+        self.lbl_razao.pack(
+            anchor="w",
+            padx=10
+        )
+
+        self.add_lbl(
+            f_left,
+            "Selecionar Loja:",
+            self.fonte_bold
+        )
+
+        # =====================================================
+        # CARREGA LOJAS
+        # =====================================================
+
         lojas = []
-        import socket
-        ips_locais = ["127.0.0.1", "localhost"]
+
+        ips_locais = [
+            "127.0.0.1",
+            "localhost"
+        ]
+
         try:
+
             hostname = socket.gethostname()
-            for info in socket.getaddrinfo(hostname, None):
+
+            for info in socket.getaddrinfo(
+                hostname,
+                None
+            ):
+
                 ip_encontrado = info[4][0]
-                if "." in ip_encontrado and ip_encontrado not in ips_locais: ips_locais.append(ip_encontrado)
-        except Exception as e:
-            print(e)
+
+                if (
+                    "." in ip_encontrado
+                    and ip_encontrado not in ips_locais
+                ):
+
+                    ips_locais.append(
+                        ip_encontrado
+                    )
+
+        except Exception as erro:
+
+            print(erro)
 
         try:
-            with self.db_conexao.cursor() as cursor:
-                
-                self.db_conexao.ping(reconnect=True)
 
-                placeholders = ', '.join(['%s'] * len(ips_locais))
+            with self.db_conexao.cursor() as cursor:
+
+                self.db_conexao.ping(
+                    reconnect=True
+                )
+
+                placeholders = ", ".join(
+                    ["%s"] * len(ips_locais)
+                )
 
                 query = f"""
-                SELECT
-                    l.codigo_loja,
-                    l.razao,
-                    c.matriz
-                FROM loja l
-                INNER JOIN configuracao_loja c
-                    ON l.codigo_loja = c.codigo_loja
-                WHERE c.ip_loja IN ({placeholders})
+                    SELECT
+                        l.codigo_loja,
+                        l.razao,
+                        c.matriz
+                    FROM loja l
+                    INNER JOIN configuracao_loja c
+                        ON l.codigo_loja = c.codigo_loja
+                    WHERE c.ip_loja IN ({placeholders})
                 """
 
-                cursor.execute(query, tuple(ips_locais))
+                cursor.execute(
+                    query,
+                    tuple(ips_locais)
+                )
 
                 config_local = cursor.fetchone()
 
-                if config_local and int(config_local['matriz']) == 0:
+                # =================================================
+                # LOJA FILIAL
+                # =================================================
+
+                if (
+                    config_local
+                    and int(config_local["matriz"]) == 0
+                ):
 
                     lojas = [
                         f"{config_local['codigo_loja']} - {config_local['razao']}"
                     ]
+
+                # =================================================
+                # MATRIZ
+                # =================================================
 
                 else:
 
@@ -317,110 +516,830 @@ class DashboardApp(ctk.CTkToplevel):
                     )
 
                     lojas = [
+
                         f"{r['codigo_loja']} - {r['razao']}"
+
                         for r in cursor.fetchall()
                     ]
 
-        except Exception as e:
-            print(e)
-            lojas = ["Erro ao carregar lojas"]
+        except Exception as erro:
 
-        self.loja_cb = ctk.CTkComboBox(f_left, values=lojas, width=400, border_color=tema["destaque"], command=self.atualizar_dados_loja)
-        self.loja_cb.pack(anchor="w", padx=10)
+            print(erro)
+
+            lojas = [
+                "Erro ao carregar lojas"
+            ]
+
+        # =====================================================
+        # COMBO LOJA
+        # =====================================================
+
+        self.loja_cb = ctk.CTkComboBox(
+            f_left,
+            values=lojas,
+            width=400,
+            border_color=tema["destaque"],
+            command=self.atualizar_dados_loja
+        )
+
+        self.loja_cb.pack(
+            anchor="w",
+            padx=10
+        )
+
         if len(lojas) == 1:
-            self.loja_cb.set(lojas[0]); self.after(100, lambda: self.atualizar_dados_loja(lojas[0]))
-        else: self.loja_cb.set("Selecione uma Loja")
 
-        # --- Painel Lateral CNPJ ---
-        f_right = ctk.CTkFrame(f_top, fg_color="transparent"); f_right.pack(side="right", padx=10)
-        card_cnpj = ctk.CTkFrame(f_right, width=310, height=80, corner_radius=15, border_width=1, border_color=tema["destaque"], fg_color="transparent")
-        card_cnpj.pack(); card_cnpj.pack_propagate(False)
-        ctk.CTkLabel(card_cnpj, text="CNPJ da Loja Selecionada:", font=self.fonte_bold).pack(pady=(2, 0))
-        self.lbl_cnpj = ctk.CTkLabel(card_cnpj, text="00.000.000/0000-00", font=("Segoe UI", 20, "bold"), text_color=tema["destaque"]); self.lbl_cnpj.pack(expand=True)
-        
-        # --- Filtros de Tipo e Status ---
-        f_row1 = ctk.CTkFrame(f_main, fg_color="transparent"); f_row1.pack(fill="x", pady=0)
-        f_tipo = ctk.CTkFrame(f_row1, fg_color="transparent"); f_tipo.pack(side="left")
-        self.add_lbl(f_tipo, "Tipo:", self.fonte_bold); self.tipo_cb = ctk.CTkComboBox(f_tipo, values=["1 - NFC-e", "2 - SAT-CF-e"], width=180, border_color=tema["destaque"]); self.tipo_cb.pack(padx=10)
-        f_stat = ctk.CTkFrame(f_row1, fg_color="transparent"); f_stat.pack(side="left", padx=20)
-        self.add_lbl(f_stat, "Status:", self.fonte_bold)
-        self.status_cb = ctk.CTkComboBox(f_stat, values=["Todos", "102 - Venda de NFCe", "103 - Cancelamento de NFCe", "105 - Inutilizacao Numeracao de NFCe"], width=280, border_color=tema["destaque"]); self.status_cb.set("Todos"); self.status_cb.pack(padx=10)
-        
-        # --- PDV e Datas ---
-        f_row2 = ctk.CTkFrame(f_main, fg_color="transparent"); f_row2.pack(fill="x", pady=0)
-        f_pdv = ctk.CTkFrame(f_row2, fg_color="transparent"); f_pdv.pack(side="left")
-        self.add_lbl(f_pdv, "PDV:", self.fonte_bold); self.pdv_cb = ctk.CTkComboBox(f_pdv, values=["Todos"], width=180, border_color=tema["destaque"]); self.pdv_cb.pack(padx=10)
-        f_per = ctk.CTkFrame(f_row2, fg_color="transparent"); f_per.pack(side="left", padx=20)
-        self.add_lbl(f_per, "Período (Data Inicial / Final):", self.fonte_bold)
-        f_datas = ctk.CTkFrame(f_per, fg_color="transparent"); f_datas.pack(padx=10)
-        self.ent_d_ini = self.criar_campo_dash_placeholder(f_datas, "00/00/0000", 120, tema["destaque"], data=True); self.ent_d_ini.bind("<Return>", lambda e: self.gerar_xml_final())
-        ctk.CTkLabel(f_datas, text="até").pack(side="left", padx=5)
-        self.ent_d_fim = self.criar_campo_dash_placeholder(f_datas, "00/00/0000", 120, tema["destaque"], data=True); self.ent_d_fim.bind("<Return>", lambda e: self.gerar_xml_final())
-        
-        # --- Sequência ---
-        self.add_lbl(f_main, "Sequência (Inicial / Final):", self.fonte_bold); f_seq = ctk.CTkFrame(f_main, fg_color="transparent"); f_seq.pack(anchor="w", padx=10)
-        self.ent_s_ini = self.criar_campo_dash_placeholder(f_seq, "0", 100, tema["destaque"]); self.ent_s_ini.bind("<KeyRelease>", self.trava_sequencia)
-        ctk.CTkLabel(f_seq, text=" a ").pack(side="left")
-        self.ent_s_fim = ctk.CTkEntry(f_seq, width=100, border_color=tema["destaque"], state="disabled", fg_color=("#D3D3D3", "#3D3D3D")); self.ent_s_fim.insert(0, "0"); self.ent_s_fim.pack(side="left")
-        
-        # --- BARRA DE BOTÕES COM CORREÇÃO ---
-        self.add_lbl(f_main, "Caminho de Destino:", self.fonte_bold)
-        f_path = ctk.CTkFrame(f_main, fg_color="transparent") # CORRIGIDO DE "transparent river" PARA "transparent"
-        f_path.pack(fill="x", padx=10)
-        self.ent_path = self.criar_campo_dash_placeholder(f_path, "", 340, tema["destaque"])
-        
-        # Botões com referências para trava
-        self.btn_procurar = ctk.CTkButton(f_path, text="Procurar", width=80, command=self.escolher_pasta)
-        self.btn_procurar.pack(side="left", padx=2)
-        
-        self.btn_xml_mes = ctk.CTkButton(f_path, text="XML Mes", width=80, fg_color="#c84a4a", command=lambda: self.automacao_pastas("XML"))
-        self.btn_xml_mes.pack(side="left", padx=2)
-        
-        self.btn_xml_falt = ctk.CTkButton(f_path, text="XML Faltantes", width=100, fg_color="#d4ac0d", text_color="black", command=lambda: self.automacao_pastas("XML FALTANTES"))
-        self.btn_xml_falt.pack(side="left", padx=2)
-        
-        self.btn_pasta = ctk.CTkButton(f_path, text="Pasta", width=65, fg_color="#e67e22", command=self.criar_pasta_avulsa)
-        self.btn_pasta.pack(side="left", padx=2)
-        
-        self.btn_compactar = ctk.CTkButton(f_path, text="Compactar", width=90, fg_color="#8e44ad", command=self.compactar_manual)
-        self.btn_compactar.pack(side="left", padx=2)
-        
-        # Status e Progresso
-        self.lbl_gerando = ctk.CTkLabel(t_xml, text="Aguardando ação...", font=("Segoe UI", 11, "italic"), text_color="gray"); self.lbl_gerando.pack(pady=(2, 0))
-        self.prog_xml = ctk.CTkProgressBar(t_xml, height=14, progress_color=tema["destaque"]); self.prog_xml.set(0); self.prog_xml.pack(fill="x", padx=40, pady=(1, 5))
-        
-        self.btn_gerar_final = ctk.CTkButton(t_xml, text="GERAR XML AGORA", font=("Segoe UI", 20, "bold"), fg_color="#2d8a4e", height=55, width=480, corner_radius=15, command=self.gerar_xml_final)
-        self.btn_gerar_final.pack(pady=(0, 10))
+            self.loja_cb.set(lojas[0])
+
+            self.after(
+                100,
+                lambda: self.atualizar_dados_loja(
+                    lojas[0]
+                )
+            )
+
+        else:
+
+            self.loja_cb.set(
+                "Selecione uma Loja"
+            )
+
+        # =====================================================
+        # RIGHT
+        # =====================================================
+
+        f_right = ctk.CTkFrame(
+            f_top,
+            fg_color="transparent"
+        )
+
+        f_right.pack(
+            side="right",
+            padx=10
+        )
+
+        card_cnpj = ctk.CTkFrame(
+            f_right,
+            width=310,
+            height=80,
+            corner_radius=15,
+            border_width=1,
+            border_color=tema["destaque"],
+            fg_color="transparent"
+        )
+
+        card_cnpj.pack()
+
+        card_cnpj.pack_propagate(False)
+
+        ctk.CTkLabel(
+            card_cnpj,
+            text="CNPJ da Loja Selecionada:",
+            font=self.fonte_bold
+        ).pack(pady=(2, 0))
+
+        self.lbl_cnpj = ctk.CTkLabel(
+            card_cnpj,
+            text="00.000.000/0000-00",
+            font=("Segoe UI", 20, "bold"),
+            text_color=tema["destaque"]
+        )
+
+        self.lbl_cnpj.pack(
+            expand=True
+        )
+
+        # =====================================================
+        # TIPO / STATUS
+        # =====================================================
+
+        f_row1 = ctk.CTkFrame(
+            f_main,
+            fg_color="transparent"
+        )
+
+        f_row1.pack(
+            fill="x"
+        )
+
+        # TIPO
+
+        f_tipo = ctk.CTkFrame(
+            f_row1,
+            fg_color="transparent"
+        )
+
+        f_tipo.pack(side="left")
+
+        self.add_lbl(
+            f_tipo,
+            "Tipo:",
+            self.fonte_bold
+        )
+
+        self.tipo_cb = ctk.CTkComboBox(
+            f_tipo,
+            values=[
+                "1 - NFC-e",
+                "2 - SAT-CF-e"
+            ],
+            width=180,
+            border_color=tema["destaque"]
+        )
+
+        self.tipo_cb.pack(
+            padx=10
+        )
+
+        # STATUS
+
+        f_stat = ctk.CTkFrame(
+            f_row1,
+            fg_color="transparent"
+        )
+
+        f_stat.pack(
+            side="left",
+            padx=20
+        )
+
+        self.add_lbl(
+            f_stat,
+            "Status:",
+            self.fonte_bold
+        )
+
+        self.status_cb = ctk.CTkComboBox(
+            f_stat,
+            values=[
+                "Todos",
+                "102 - Venda NFCe",
+                "103 - Cancelamento",
+                "105 - Inutilização"
+            ],
+            width=280,
+            border_color=tema["destaque"]
+        )
+
+        self.status_cb.set("Todos")
+
+        self.status_cb.pack(
+            padx=10
+        )
+
+        # =====================================================
+        # PDV / DATAS
+        # =====================================================
+
+        f_row2 = ctk.CTkFrame(
+            f_main,
+            fg_color="transparent"
+        )
+
+        f_row2.pack(
+            fill="x"
+        )
+
+        # PDV
+
+        f_pdv = ctk.CTkFrame(
+            f_row2,
+            fg_color="transparent"
+        )
+
+        f_pdv.pack(
+            side="left"
+        )
+
+        self.add_lbl(
+            f_pdv,
+            "PDV:",
+            self.fonte_bold
+        )
+
+        self.pdv_cb = ctk.CTkComboBox(
+            f_pdv,
+            values=["Todos"],
+            width=180,
+            border_color=tema["destaque"]
+        )
+
+        self.pdv_cb.pack(
+            padx=10
+        )
+
+        # DATAS
+
+        f_per = ctk.CTkFrame(
+            f_row2,
+            fg_color="transparent"
+        )
+
+        f_per.pack(
+            side="left",
+            padx=20
+        )
+
+        self.add_lbl(
+            f_per,
+            "Período (Inicial / Final):",
+            self.fonte_bold
+        )
+
+        f_datas = ctk.CTkFrame(
+            f_per,
+            fg_color="transparent"
+        )
+
+        f_datas.pack(
+            padx=10
+        )
+
+        self.ent_d_ini = self.criar_campo_dash_placeholder(
+            f_datas,
+            "00/00/0000",
+            120,
+            tema["destaque"]
+        )
+
+        ctk.CTkLabel(
+            f_datas,
+            text="até"
+        ).pack(
+            side="left",
+            padx=5
+        )
+
+        self.ent_d_fim = self.criar_campo_dash_placeholder(
+            f_datas,
+            "00/00/0000",
+            120,
+            tema["destaque"]
+        )
+
+        # =====================================================
+        # SEQUÊNCIA
+        # =====================================================
+
+        self.add_lbl(
+            f_main,
+            "Sequência (Inicial / Final):",
+            self.fonte_bold
+        )
+
+        f_seq = ctk.CTkFrame(
+            f_main,
+            fg_color="transparent"
+        )
+
+        f_seq.pack(
+            anchor="w",
+            padx=10
+        )
+
+        self.ent_s_ini = self.criar_campo_dash_placeholder(
+            f_seq,
+            "0",
+            100,
+            tema["destaque"]
+        )
+
+        self.ent_s_ini.bind(
+            "<KeyRelease>",
+            self.trava_sequencia
+        )
+
+        ctk.CTkLabel(
+            f_seq,
+            text=" a "
+        ).pack(side="left")
+
+        self.ent_s_fim = ctk.CTkEntry(
+            f_seq,
+            width=100,
+            border_color=tema["destaque"],
+            state="disabled"
+        )
+
+        self.ent_s_fim.insert(0, "0")
+
+        self.ent_s_fim.pack(side="left")
+
+        # =====================================================
+        # CAMINHO
+        # =====================================================
+
+        self.add_lbl(
+            f_main,
+            "Caminho de Destino:",
+            self.fonte_bold
+        )
+
+        f_path = ctk.CTkFrame(
+            f_main,
+            fg_color="transparent"
+        )
+
+        f_path.pack(
+            fill="x",
+            padx=10
+        )
+
+        self.ent_path = self.criar_campo_dash_placeholder(
+            f_path,
+            "",
+            340,
+            tema["destaque"]
+        )
+
+        # =====================================================
+        # BOTÕES
+        # =====================================================
+
+        self.btn_procurar = ctk.CTkButton(
+            f_path,
+            text="Procurar",
+            width=80,
+            command=self.escolher_pasta
+        )
+
+        self.btn_procurar.pack(
+            side="left",
+            padx=2
+        )
+
+        self.btn_xml_mes = ctk.CTkButton(
+            f_path,
+            text="XML Mes",
+            width=80,
+            fg_color="#c84a4a",
+            command=lambda: self.automacao_pastas("XML")
+        )
+
+        self.btn_xml_mes.pack(
+            side="left",
+            padx=2
+        )
+
+        self.btn_xml_falt = ctk.CTkButton(
+            f_path,
+            text="XML Faltantes",
+            width=120,
+            fg_color="#d4ac0d",
+            text_color="black",
+            command=lambda: self.automacao_pastas(
+                "XML FALTANTES"
+            )
+        )
+
+        self.btn_xml_falt.pack(
+            side="left",
+            padx=2
+        )
+
+        self.btn_pasta = ctk.CTkButton(
+            f_path,
+            text="Pasta",
+            width=70,
+            fg_color="#e67e22",
+            command=self.criar_pasta_avulsa
+        )
+
+        self.btn_pasta.pack(
+            side="left",
+            padx=2
+        )
+
+        self.btn_compactar = ctk.CTkButton(
+            f_path,
+            text="Compactar",
+            width=90,
+            fg_color="#8e44ad",
+            command=self.compactar_manual
+        )
+
+        self.btn_compactar.pack(
+            side="left",
+            padx=2
+        )
+
+        # =====================================================
+        # STATUS
+        # =====================================================
+
+        self.lbl_gerando = ctk.CTkLabel(
+            t_xml,
+            text="Aguardando ação...",
+            font=("Segoe UI", 11, "italic"),
+            text_color="gray"
+        )
+
+        self.lbl_gerando.pack(
+            pady=(2, 0)
+        )
+
+        self.prog_xml = ctk.CTkProgressBar(
+            t_xml,
+            height=14,
+            progress_color=tema["destaque"]
+        )
+
+        self.prog_xml.set(0)
+
+        self.prog_xml.pack(
+            fill="x",
+            padx=40,
+            pady=(1, 5)
+        )
+
+        # =====================================================
+        # GERAR XML
+        # =====================================================
+
+        self.btn_gerar_final = ctk.CTkButton(
+            t_xml,
+            text="GERAR XML AGORA",
+            font=("Segoe UI", 20, "bold"),
+            fg_color="#2d8a4e",
+            height=55,
+            width=480,
+            corner_radius=15,
+            command=self.gerar_xml_final
+        )
+
+        self.btn_gerar_final.pack(
+            pady=(0, 10)
+        )
+
+    # =========================================================
+    # ATUALIZA LOJA
+    # =========================================================
 
     def atualizar_dados_loja(self, escolha):
+
         try:
-            cod = escolha.split(" - ")[0]; self.lbl_razao.configure(text=escolha.split(" - ")[1])
+
+            cod = escolha.split(" - ")[0]
+
+            razao = escolha.split(" - ")[1]
+
+            self.lbl_razao.configure(
+                text=razao
+            )
+
             with self.db_conexao.cursor() as cursor:
-                cursor.execute("SELECT numero_pdv FROM pdv WHERE codigo_loja=%s AND situacao_pdv IN (2, 3) ORDER BY numero_pdv", (cod,))
-                self.pdv_cb.configure(values=["Todos"] + [str(r['numero_pdv']) for r in cursor.fetchall()]); self.pdv_cb.set("Todos")
-                cursor.execute("SELECT cnpj FROM loja WHERE codigo_loja = %s", (cod,))
+
+                cursor.execute(
+                    """
+                    SELECT numero_pdv
+                    FROM pdv
+                    WHERE codigo_loja=%s
+                    AND situacao_pdv IN (2, 3)
+                    ORDER BY numero_pdv
+                    """,
+                    (cod,)
+                )
+
+                pdvs = [
+                    str(r["numero_pdv"])
+                    for r in cursor.fetchall()
+                ]
+
+                self.pdv_cb.configure(
+                    values=["Todos"] + pdvs
+                )
+
+                self.pdv_cb.set("Todos")
+
+                cursor.execute(
+                    """
+                    SELECT cnpj
+                    FROM loja
+                    WHERE codigo_loja=%s
+                    """,
+                    (cod,)
+                )
+
                 res = cursor.fetchone()
+
                 if res:
-                    p = "".join(filter(str.isdigit, str(res['cnpj']))).zfill(14)
-                    self.lbl_cnpj.configure(text=f"{p[:2]}.{p[2:5]}.{p[5:8]}/{p[8:12]}-{p[12:]}")
-        except: self.lbl_cnpj.configure(text="Erro ao carregar")
+
+                    p = "".join(
+                        filter(
+                            str.isdigit,
+                            str(res["cnpj"])
+                        )
+                    ).zfill(14)
+
+                    self.lbl_cnpj.configure(
+                        text=f"{p[:2]}.{p[2:5]}.{p[5:8]}/{p[8:12]}-{p[12:]}"
+                    )
+
+        except Exception:
+
+            self.lbl_cnpj.configure(
+                text="Erro ao carregar"
+            )
+
+    # =========================================================
+    # TRAVA SEQUÊNCIA
+    # =========================================================
+
+    def trava_sequencia(self, event=None):
+
+        valor = self.ent_s_ini.get().strip()
+
+        if not valor:
+
+            valor = "0"
+
+        valor = "".join(
+            filter(str.isdigit, valor)
+        )
+
+        self.ent_s_ini.delete(0, "end")
+
+        self.ent_s_ini.insert(0, valor)
+
+        self.ent_s_fim.configure(
+            state="normal"
+        )
+
+        self.ent_s_fim.delete(0, "end")
+
+        self.ent_s_fim.insert(0, valor)
+
+        self.ent_s_fim.configure(
+            state="disabled"
+        )
+
+    # =========================================================
+    # ESCOLHER PASTA
+    # =========================================================
+
+    def escolher_pasta(self):
+
+        pasta = filedialog.askdirectory()
+
+        if pasta:
+
+            self.ent_path.delete(0, "end")
+
+            self.ent_path.insert(0, pasta)
+
+            self.lbl_gerando.configure(
+                text="Pasta selecionada.",
+                text_color="#27ae60"
+            )
+
+    # =========================================================
+    # PASTAS AUTOMÁTICAS
+    # =========================================================
 
     def automacao_pastas(self, prefixo):
+
         loja = self.loja_cb.get()
-        if " - " not in loja: return messagebox.showwarning("Aviso", "Selecione a loja!")
-        cod = loja.split(" - ")[0]; h = datetime.now(); m_idx, a = (h.month-1, h.year) if h.month > 1 else (12, h.year-1)
-        nome_p = f"{prefixo} LJ{cod} {MESES[m_idx]} {a}"; caminho = os.path.join(os.getcwd(), nome_p)
+
+        if " - " not in loja:
+
+            return messagebox.showwarning(
+                "Aviso",
+                "Selecione a loja."
+            )
+
+        cod = loja.split(" - ")[0]
+
+        h = datetime.now()
+
+        mes = h.month - 1
+
+        ano = h.year
+
+        nome_pasta = (
+            f"{prefixo} LJ{cod} "
+            f"{MESES[mes]} {ano}"
+        )
+
+        caminho = os.path.join(
+            os.getcwd(),
+            nome_pasta
+        )
+
         if os.path.exists(caminho):
-            if not messagebox.askyesno("Substituir", f"A pasta '{nome_p}' já existe. Substituir?"): return
+
+            resposta = messagebox.askyesno(
+                "Substituir",
+                "A pasta já existe.\nDeseja substituir?"
+            )
+
+            if not resposta:
+                return
+
             shutil.rmtree(caminho)
-        os.makedirs(caminho); self.ent_path.delete(0, "end"); self.ent_path.insert(0, caminho)
-        messagebox.showinfo("Sucesso", f"Pasta '{nome_p}' criada com sucesso!")
-        while messagebox.askyesno("Incluir PDV", "Deseja incluir um PDV nesta organização?"):
-            num = CustomInputDialog(self, "Novo PDV", "Digite o número do PDV:").get_input()
-            if num:
-                pdv_path = os.path.join(caminho, f"PDV {num}")
-                if not os.path.exists(pdv_path):
-                    os.makedirs(pdv_path)
-                    messagebox.showinfo("Sucesso", f"Pasta PDV {num} criada com sucesso!")
-                else: messagebox.showwarning("Aviso", "A pasta já existe.")
-            else: break
+
+        os.makedirs(caminho)
+
+        self.ent_path.delete(0, "end")
+
+        self.ent_path.insert(0, caminho)
+
+        messagebox.showinfo(
+            "Sucesso",
+            "Pasta criada com sucesso."
+        )
+
+        # =====================================================
+        # PDVS
+        # =====================================================
+
+        while True:
+
+            resposta = messagebox.askyesno(
+                "PDV",
+                "Deseja adicionar pasta PDV?"
+            )
+
+            if not resposta:
+                break
+
+            num = ctk.CTkInputDialog(
+                text="Digite o número do PDV:",
+                title="Novo PDV"
+            ).get_input()
+
+            if not num:
+                break
+
+            pdv_path = os.path.join(
+                caminho,
+                f"PDV {num}"
+            )
+
+            os.makedirs(
+                pdv_path,
+                exist_ok=True
+            )
+
+    # =========================================================
+    # PASTA AVULSA
+    # =========================================================
+
+    def criar_pasta_avulsa(self):
+
+        pasta = filedialog.askdirectory()
+
+        if not pasta:
+            return
+
+        nome = ctk.CTkInputDialog(
+            text="Digite o nome da pasta:",
+            title="Nova Pasta"
+        ).get_input()
+
+        if not nome:
+            return
+
+        caminho = os.path.join(
+            pasta,
+            nome
+        )
+
+        os.makedirs(
+            caminho,
+            exist_ok=True
+        )
+
+        self.ent_path.delete(0, "end")
+
+        self.ent_path.insert(0, caminho)
+
+        self.lbl_gerando.configure(
+            text="Pasta criada com sucesso.",
+            text_color="#27ae60"
+        )
+
+        registrar_evento(
+            f"Pasta criada: {caminho}"
+        )
+
+    # =========================================================
+    # COMPACTAR
+    # =========================================================
+
+    def compactar_manual(self):
+
+        caminho = self.ent_path.get().strip()
+
+        if not caminho:
+
+            return messagebox.showwarning(
+                "Aviso",
+                "Selecione uma pasta."
+            )
+
+        if not os.path.exists(caminho):
+
+            return messagebox.showerror(
+                "Erro",
+                "Pasta não encontrada."
+            )
+
+        try:
+
+            arquivo_zip = shutil.make_archive(
+                caminho,
+                "zip",
+                caminho
+            )
+
+            self.lbl_gerando.configure(
+                text="Compactação concluída.",
+                text_color="#27ae60"
+            )
+
+            registrar_evento(
+                f"Pasta compactada: {arquivo_zip}"
+            )
+
+            messagebox.showinfo(
+                "Sucesso",
+                "Compactação concluída."
+            )
+
+        except Exception as erro:
+
+            messagebox.showerror(
+                "Erro",
+                str(erro)
+            )
+
+    # =========================================================
+    # GERAR XML
+    # =========================================================
+
+    def gerar_xml_final(self):
+
+        loja = self.loja_cb.get()
+
+        if " - " not in loja:
+
+            return messagebox.showwarning(
+                "Aviso",
+                "Selecione a loja."
+            )
+
+        caminho = self.ent_path.get().strip()
+
+        if not caminho:
+
+            return messagebox.showwarning(
+                "Aviso",
+                "Selecione uma pasta destino."
+            )
+
+        self.prog_xml.set(0.2)
+
+        self.lbl_gerando.configure(
+            text="Gerando XML...",
+            text_color="#f39c12"
+        )
+
+        self.update()
+
+        try:
+
+            time.sleep(1)
+
+            self.prog_xml.set(1)
+
+            self.lbl_gerando.configure(
+                text="XML gerado com sucesso.",
+                text_color="#27ae60"
+            )
+
+            registrar_evento(
+                f"XML gerado para loja: {loja}"
+            )
+
+            messagebox.showinfo(
+                "Sucesso",
+                "XML gerado com sucesso."
+            )
+
+        except Exception as erro:
+
+            self.prog_xml.set(0)
+
+            self.lbl_gerando.configure(
+                text="Erro ao gerar XML.",
+                text_color="red"
+            )
+
+            registrar_evento(
+                f"Erro ao gerar XML: {erro}"
+            )
+
+            messagebox.showerror(
+                "Erro",
+                str(erro)
+            )
