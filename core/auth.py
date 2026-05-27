@@ -1,4 +1,4 @@
-# core/auth.py
+# core/auth.py 
 
 # Lista de usuários autorizados
 USUARIOS = {
