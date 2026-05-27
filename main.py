@@ -2,7 +2,7 @@ import os
 import sys
 
 # ==========================================
-# ADICIONA DIRETÓRIO RAIZ AO PYTHONPATH
+# ADICIONA DIRETÓRIO RAIZ AO PYTHONPATH 
 # ==========================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
