@@ -70,7 +70,7 @@ class FiuzaEnterpriseApp(ctk.CTk):
         self.title("Fiuza Tecnology - Gerador de XML Completo")
 
         self.width_app = 1100
-        self.height_app = 700
+        self.height_app = 720
 
         self.geometry(
             f"{self.width_app}x{self.height_app}"
@@ -82,8 +82,8 @@ class FiuzaEnterpriseApp(ctk.CTk):
         # Habilita maximizar
         self.resizable(True, True)
 
-        # CENTRALIZA
-        self.after(100, self.centralizar_janela)
+        # Alinhado acima
+        self.after(100, self.posicionar_janela)
         
         # Ícone do sistema (opcional)
         try:
@@ -184,23 +184,22 @@ class FiuzaEnterpriseApp(ctk.CTk):
         self.setup_login_ui()
 
         # =========================================================
-        # CENTRALIZAR
+        # POSICIONAR JANELA
         # =========================================================
 
-    def centralizar_janela(self):
+    def posicionar_janela(self):
 
         self.update_idletasks()
 
-        largura = self.width_app
-        altura = self.height_app
+        largura = 1100
+        altura = 720
 
         x = int(
             (self.winfo_screenwidth() / 2) - (largura / 2)
         )
 
-        y = int(
-            (self.winfo_screenheight() / 2) - (altura / 2)
-        )
+        # MAIS PARA CIMA
+        y = 0
 
         self.geometry(f"{largura}x{altura}+{x}+{y}")
 
