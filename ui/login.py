@@ -10,6 +10,7 @@ from tkinter import messagebox
 from core.auth import validar_usuario
 from core.database import conectar_mysql
 from core.logs import registrar_evento
+from core.updater import verificar_atualizacao
 
 
 # =========================================================
@@ -108,7 +109,8 @@ class FiuzaEnterpriseApp(ctk.CTk):
 
         self.config_app = {
             "tema_cor": "padrao",
-            "modo_brilho": "Light"
+            "modo_brilho": "Light",
+            "auto_update": True
         }
         
         # Carrega configuração salva
@@ -182,6 +184,17 @@ class FiuzaEnterpriseApp(ctk.CTk):
             ctk.set_appearance_mode("Light")
 
         self.setup_login_ui()
+        
+        # =====================================================
+        # AUTO UPDATE
+        # =====================================================
+
+        if self.config_app.get("auto_update", True):
+
+            self.after(
+                2000,
+                lambda: verificar_atualizacao(auto=True)
+            )
 
         # =========================================================
         # POSICIONAR JANELA
@@ -336,6 +349,10 @@ class FiuzaEnterpriseApp(ctk.CTk):
             "⚪ White",
             "white"
         ).pack(side="left", padx=4)
+        
+        self.criar_botao_settings(
+            self.frame_temas
+        ).pack(side="left", padx=8)
 
     # =========================================================
     # BOTÃO DE TEMA
@@ -374,6 +391,141 @@ class FiuzaEnterpriseApp(ctk.CTk):
 
             command=lambda: self.alterar_tema(tema_nome)
         )
+
+    # =========================================================
+    # BOTÃO SETTINGS
+    # =========================================================
+
+    def criar_botao_settings(self, master):
+
+        return ctk.CTkButton(
+            master,
+            text="⚙ Settings",
+            width=110,
+            height=34,
+            corner_radius=18,
+            fg_color="#444444",
+            hover_color="#2E2E2E",
+            text_color="#FFFFFF",
+            font=("Segoe UI", 12, "bold"),
+            command=self.abrir_settings
+        )
+
+    # =========================================================
+    # SETTINGS
+    # =========================================================
+
+    def abrir_settings(self):
+
+        janela = ctk.CTkToplevel(self)
+
+        janela.title("Configurações")
+
+        janela.geometry("350x180")
+
+        janela.resizable(False, False)
+
+        janela.grab_set()
+
+        # =====================================================
+        # TITULO
+        # =====================================================
+
+        ctk.CTkLabel(
+            janela,
+            text="Configurações do Sistema",
+            font=("Segoe UI", 18, "bold"),
+            justify="center"
+        ).pack(
+            pady=(20, 15),
+            fill="x"
+        )
+
+        # =====================================================
+        # CHECKBOX UPDATE
+        # =====================================================
+
+        self.var_auto_update = ctk.BooleanVar(
+            value=self.config_app.get(
+                "auto_update",
+                True
+            )
+        )
+
+        check_update = ctk.CTkCheckBox(
+            janela,
+            text="Atualizações automáticas",
+            variable=self.var_auto_update,
+            font=("Segoe UI", 14)
+        )
+
+        check_update.pack(pady=10)
+
+        # =====================================================
+        # FRAME BOTÕES
+        # =====================================================
+
+        frame_btns = ctk.CTkFrame(
+            janela,
+            fg_color="transparent"
+        )
+
+        frame_btns.pack(pady=20)
+
+        # =====================================================
+        # BOTÃO VERIFICAR UPDATE
+        # =====================================================
+
+        ctk.CTkButton(
+            frame_btns,
+            text="Verificar atualizações",
+            width=170,
+            height=40,
+            corner_radius=12,
+            fg_color="#3b8ed0",
+            hover_color="#2f6fa5",
+            command=verificar_atualizacao
+        ).pack(
+            side="left",
+            padx=5
+        )
+
+        # =====================================================
+        # BOTÃO SALVAR
+        # =====================================================
+
+        ctk.CTkButton(
+            frame_btns,
+            text="Salvar",
+            width=120,
+            height=40,
+            corner_radius=12,
+            command=lambda: self.salvar_settings(
+                janela
+            )
+        ).pack(
+            side="left",
+            padx=5
+        )
+
+    # =========================================================
+    # SALVAR SETTINGS
+    # =========================================================
+
+    def salvar_settings(self, janela):
+
+        self.config_app["auto_update"] = (
+            self.var_auto_update.get()
+        )
+
+        self.salvar_config()
+
+        messagebox.showinfo(
+            "Configuração",
+            "Configurações salvas com sucesso."
+        )
+
+        janela.destroy()
 
     # =========================================================
     # ALTERAR TEMA
