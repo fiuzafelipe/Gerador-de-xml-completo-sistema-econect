@@ -26,10 +26,7 @@ URL_VERSION = (
     f"{REPOSITORIO}/main/version.json"
 )
 
-URL_ZIP = (
-    "https://github.com/"
-    f"{REPOSITORIO}/archive/refs/heads/main.zip"
-)
+URL_ZIP = None
 
 # =========================================================
 # ITENS PROTEGIDOS
@@ -69,7 +66,7 @@ IGNORAR_UPDATE = [
 # BAIXAR UPDATE
 # =========================================================
 
-def baixar_atualizacao():
+def baixar_atualizacao(url_zip):
 
     temp_dir = None
 
@@ -95,9 +92,9 @@ def baixar_atualizacao():
         # =====================================================
 
         response = requests.get(
-            URL_ZIP,
+            url_zip,
             stream=True,
-            timeout=30
+            timeout=15
         )
 
         if response.status_code != 200:
@@ -317,6 +314,10 @@ def verificar_atualizacao(auto=False):
             "0.0.0"
         )
 
+        download_url = dados.get(
+            "download_url"
+        )
+
         # =====================================================
         # TEM UPDATE
         # =====================================================
@@ -337,7 +338,7 @@ def verificar_atualizacao(auto=False):
 
             if resposta:
 
-                baixar_atualizacao()
+                baixar_atualizacao(download_url)
 
         else:
 
