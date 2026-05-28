@@ -3,14 +3,17 @@ import json
 import threading
 import customtkinter as ctk
 import sys
+import requests
+import subprocess
 
 from PIL import Image
 from tkinter import messagebox
+from version import VERSION
+from updater import verificar_atualizacao
 
 from core.auth import validar_usuario
 from core.database import conectar_mysql
 from core.logs import registrar_evento
-from core.updater import verificar_atualizacao
 
 
 # =========================================================
@@ -195,6 +198,53 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 2000,
                 lambda: verificar_atualizacao(auto=True)
             )
+
+    def verificar_atualizacao(self):
+
+        try:
+
+            url = "https://raw.githubusercontent.com/fiuzafelipe/Gerador-de-xml-completo-sistema-econect/main/version.json"
+
+            resposta = requests.get(url, timeout=5)
+
+            dados = resposta.json()
+
+            nova_versao = dados["version"]
+
+            download_url = dados["download_url"]
+
+            if nova_versao != VERSION:
+
+                atualizar = messagebox.askyesno(
+                    "Atualização disponível",
+                    f"Há atualizações disponíveis!\n\n"
+                    f"Versão atual: {VERSION}\n"
+                    f"Nova versão: {nova_versao}\n\n"
+                    f"Deseja atualizar agora?"
+                )
+
+                if atualizar:
+
+                    subprocess.Popen(
+                        [
+                            "python",
+                            "updater.py",
+                            download_url
+                        ]
+                    )
+
+                    self.destroy()
+
+            else:
+
+                messagebox.showinfo(
+                    "Sistema atualizado",
+                    "Não há atualizações disponíveis!\n\nBom uso."
+                )
+
+        except Exception as erro:
+
+            print("Erro update:", erro)
 
         # =========================================================
         # POSICIONAR JANELA
