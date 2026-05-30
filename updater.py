@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import shutil
 import zipfile
 import tempfile
@@ -376,7 +377,19 @@ def verificar_atualizacao(auto=False):
 
                     arquivo.write(versao_online)
 
-                baixar_atualizacao(download_url)
+                updater_exe = os.path.join(
+                    os.path.dirname(sys.executable),
+                    "updater.exe"
+                )
+
+                subprocess.Popen(
+                    [
+                        updater_exe,
+                        download_url
+                    ]
+                )
+
+                os._exit(0)
 
         else:
 
