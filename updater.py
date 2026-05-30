@@ -135,16 +135,23 @@ def baixar_atualizacao(url_zip):
         # PASTA EXTRAÍDA
         # =====================================================
 
-        pasta_extraida = os.path.join(
-            temp_dir,
-            "Gerador-de-xml-completo-sistema-econect-main"
-        )
+        pasta_extraida = temp_dir
 
-        if not os.path.exists(pasta_extraida):
+        arquivos_necessarios = [
+            "Gerador_XML.exe",
+            "_internal",
+            "assets"
+        ]
 
-            raise Exception(
-                "Estrutura inválida do ZIP."
-            )
+        for item in arquivos_necessarios:
+
+            if not os.path.exists(
+                os.path.join(pasta_extraida, item)
+            ):
+
+                raise Exception(
+                    f"Arquivo obrigatório não encontrado: {item}"
+                )
 
         # =====================================================
         # PASTA DO SISTEMA
