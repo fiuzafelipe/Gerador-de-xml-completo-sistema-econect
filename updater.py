@@ -55,7 +55,10 @@ IGNORAR_UPDATE = [
 
     # Ambientes
     "venv",
-    ".venv"
+    ".venv",
+    
+    # Update
+    "update.zip"
 ]
 
 
