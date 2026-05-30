@@ -384,7 +384,7 @@ def verificar_atualizacao(auto=False):
 
                 subprocess.Popen(
                     [
-                        updater_exe,
+                        updater_path,
                         download_url
                     ]
                 )

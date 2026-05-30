@@ -21,6 +21,35 @@ def main():
 
     download_url = sys.argv[1]
 
+    # ==========================================
+    # FECHA O SISTEMA PRINCIPAL
+    # ==========================================
+
+    try:
+
+        subprocess.run(
+            [
+                "taskkill",
+                "/F",
+                "/IM",
+                "Gerador_XML.exe"
+            ],
+            capture_output=True
+        )
+
+    except:
+        pass
+
+    # Aguarda encerramento completo
+
+    import time
+
+    time.sleep(3)
+
+    # ==========================================
+    # EXECUTA UPDATE
+    # ==========================================
+
     baixar_atualizacao(download_url)
 
     versao = ""
@@ -42,9 +71,17 @@ def main():
         f"Sistema atualizado com sucesso!\n\nVersão: {versao}"
     )
 
-    pasta_app = os.path.dirname(
-        sys.executable
-    )
+    if getattr(sys, "frozen", False):
+
+        pasta_app = os.path.dirname(
+            sys.executable
+        )
+
+    else:
+
+        pasta_app = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
     exe_principal = os.path.join(
         pasta_app,
