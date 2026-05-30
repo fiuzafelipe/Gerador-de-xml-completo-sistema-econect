@@ -235,6 +235,18 @@ def baixar_atualizacao(url_zip):
             # =============================================
 
             try:
+                
+                registrar_evento(
+                    f"Origem: {origem}"
+                )
+
+                registrar_evento(
+                    f"Destino: {destino}"
+                )
+
+                registrar_evento(
+                    f"É diretório: {os.path.isdir(origem)}"
+                )
 
                 if os.path.isdir(origem):
 
@@ -257,8 +269,10 @@ def baixar_atualizacao(url_zip):
             except Exception as erro:
 
                 registrar_evento(
-                    f"Erro copiando {item}: {erro}"
+                    f"ERRO FATAL copiando {item}: {erro}"
                 )
+
+                raise
 
         # =====================================================
         # FINALIZAÇÃO
