@@ -1,5 +1,4 @@
 @echo off
-
 title Fiuza Tecnology - Build Executavel
 mode con: cols=90 lines=35
 color 0B
@@ -39,7 +38,7 @@ echo Limpeza concluida.
 echo.
 
 :: ==========================================================
-:: BUILD PRINCIPAL
+:: BUILD GERADOR_XML
 :: ==========================================================
 
 echo ==========================================================
@@ -63,15 +62,21 @@ echo.
 --hidden-import=core.database ^
 --hidden-import=core.logs ^
 --hidden-import=core.auth ^
---hidden-import=core.update_checker ^
 --hidden-import=updater ^
 --add-data "assets;assets" ^
 --icon=assets/icon.ico ^
 --name Gerador_XML ^
 main.py
 
+if errorlevel 1 (
+    echo.
+    echo ERRO AO GERAR GERADOR_XML.EXE
+    pause
+    exit /b
+)
+
 :: ==========================================================
-REM BUILD DO UPDATER
+:: BUILD UPDATER
 :: ==========================================================
 
 echo.
@@ -87,7 +92,8 @@ if exist updater_launcher.py (
     --clean ^
     --onefile ^
     --windowed ^
-    --paths=. ^
+    --collect-all requests ^
+    --collect-all certifi ^
     --hidden-import=updater ^
     --hidden-import=core.logs ^
     --icon=assets/icon.ico ^
@@ -97,23 +103,25 @@ if exist updater_launcher.py (
 ) else (
 
     echo.
+    echo ERRO:
     echo updater_launcher.py nao encontrado.
-    echo Build do updater ignorada.
     echo.
-
 )
 
 :: ==========================================================
-:: COPIA UPDATER PARA PASTA PRINCIPAL
+:: COPIA UPDATER
 :: ==========================================================
 
-if exist dist\updater.exe (
+echo.
+echo Copiando updater...
 
-    echo Updater gerado com sucesso.
+if exist dist\updater.exe (
 
     copy /Y ^
     dist\updater.exe ^
     dist\Gerador_XML\updater.exe >nul
+
+    echo updater.exe copiado com sucesso.
 
 ) else (
 
@@ -143,12 +151,13 @@ if exist dist\Gerador_XML\Gerador_XML.exe (
     echo.
     echo dist\Gerador_XML\
     echo    Gerador_XML.exe
-    echo    _internal\
 
     if exist dist\Gerador_XML\updater.exe (
         echo    updater.exe
     )
 
+    echo    assets\
+    echo    _internal\
     echo.
 
     explorer dist\Gerador_XML
@@ -161,6 +170,7 @@ if exist dist\Gerador_XML\Gerador_XML.exe (
 
     echo.
     echo ERRO AO GERAR EXECUTAVEL!
+    echo.
 
 )
 
