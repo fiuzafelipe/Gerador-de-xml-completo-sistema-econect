@@ -53,9 +53,6 @@ IGNORAR_UPDATE = [
     "releases",
     "installer",
 
-    # Executáveis
-    "Gerador_XML.exe",
-
     # Ambientes
     "venv",
     ".venv"
@@ -136,6 +133,10 @@ def baixar_atualizacao(url_zip):
         # =====================================================
 
         pasta_extraida = temp_dir
+
+        registrar_evento(
+            f"Conteúdo extraído: {os.listdir(pasta_extraida)}"
+        )
 
         arquivos_necessarios = [
             "Gerador_XML.exe",
