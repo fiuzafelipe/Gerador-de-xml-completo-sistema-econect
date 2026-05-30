@@ -38,11 +38,17 @@ CONFIG_FILE = os.path.join(
 
 def resource_path(relative_path):
 
-    try:
-        base_path = sys._MEIPASS
+    if getattr(sys, "frozen", False):
 
-    except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(
+            sys.executable
+        )
+
+    else:
+
+        base_path = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
     return os.path.join(
         base_path,
@@ -199,52 +205,32 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 lambda: verificar_atualizacao(auto=True)
             )
 
-    def verificar_atualizacao(self):
+    def verificar_atualizacao_concluida(self):
 
         try:
 
-            url = "https://raw.githubusercontent.com/fiuzafelipe/Gerador-de-xml-completo-sistema-econect/main/version.json"
+            if os.path.exists("ultima_versao.txt"):
 
-            resposta = requests.get(url, timeout=5)
+                with open(
+                    "ultima_versao.txt",
+                    "r",
+                    encoding="utf-8"
+                ) as arquivo:
 
-            dados = resposta.json()
-
-            nova_versao = dados["version"]
-
-            download_url = dados["download_url"]
-
-            if nova_versao != VERSION:
-
-                atualizar = messagebox.askyesno(
-                    "Atualização disponível",
-                    f"Há atualizações disponíveis!\n\n"
-                    f"Versão atual: {VERSION}\n"
-                    f"Nova versão: {nova_versao}\n\n"
-                    f"Deseja atualizar agora?"
-                )
-
-                if atualizar:
-
-                    subprocess.Popen(
-                        [
-                            "python",
-                            "updater.py",
-                            download_url
-                        ]
-                    )
-
-                    self.destroy()
-
-            else:
+                    versao = arquivo.read().strip()
 
                 messagebox.showinfo(
-                    "Sistema atualizado",
-                    "Não há atualizações disponíveis!\n\nBom uso."
+                    "Atualização concluída",
+                    f"Sistema atualizado para a versão {versao}"
                 )
+
+                os.remove("ultima_versao.txt")
 
         except Exception as erro:
 
-            print("Erro update:", erro)
+            registrar_evento(
+                f"Erro exibindo atualização: {erro}"
+            )
 
         # =========================================================
         # POSICIONAR JANELA
@@ -1297,6 +1283,8 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 "Sucesso",
                 "Login realizado com sucesso!"
             )
+            
+            self.verificar_atualizacao_concluida()
             
             # =========================================
             # ABRIR DASHBOARD

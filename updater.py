@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import zipfile
 import tempfile
@@ -161,7 +162,17 @@ def baixar_atualizacao(url_zip):
         # PASTA DO SISTEMA
         # =====================================================
 
-        pasta_atual = os.getcwd()
+        if getattr(sys, "frozen", False):
+
+            pasta_atual = os.path.dirname(
+                sys.executable
+            )
+
+        else:
+
+            pasta_atual = os.path.dirname(
+                os.path.abspath(__file__)
+            )
 
         registrar_evento(
             f"Pasta atual: {pasta_atual}"
@@ -257,12 +268,6 @@ def baixar_atualizacao(url_zip):
             "Atualização concluída com sucesso."
         )
 
-        messagebox.showinfo(
-            "Atualização",
-            "Sistema atualizado com sucesso.\n\n"
-            "Feche e abra novamente a aplicação."
-        )
-
     except Exception as erro:
 
         registrar_evento(
@@ -349,6 +354,14 @@ def verificar_atualizacao(auto=False):
 
             if resposta:
 
+                with open(
+                    "ultima_versao.txt",
+                    "w",
+                    encoding="utf-8"
+                ) as arquivo:
+
+                    arquivo.write(versao_online)
+
                 baixar_atualizacao(download_url)
 
         else:
@@ -367,6 +380,11 @@ def verificar_atualizacao(auto=False):
                 )
 
     except Exception as erro:
+
+        messagebox.showerror(
+            "Erro",
+            str(erro)
+        )
 
         registrar_evento(
             f"Erro ao verificar atualização: {erro}"

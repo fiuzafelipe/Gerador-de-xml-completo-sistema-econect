@@ -69,7 +69,7 @@ echo.
 main.py
 
 :: ==========================================================
-:: BUILD DO UPDATER
+REM BUILD DO UPDATER
 :: ==========================================================
 
 echo.
@@ -78,17 +78,28 @@ echo              GERANDO UPDATER.EXE
 echo ==========================================================
 echo.
 
-%PYTHON% -m PyInstaller ^
---noconfirm ^
---clean ^
---onefile ^
---windowed ^
---paths=. ^
---hidden-import=updater ^
---hidden-import=core.logs ^
---icon=assets/icon.ico ^
---name updater ^
-installer\updater_launcher.py
+if exist updater_launcher.py (
+
+    %PYTHON% -m PyInstaller ^
+    --noconfirm ^
+    --clean ^
+    --onefile ^
+    --windowed ^
+    --paths=. ^
+    --hidden-import=updater ^
+    --hidden-import=core.logs ^
+    --icon=assets/icon.ico ^
+    --name updater ^
+    updater_launcher.py
+
+) else (
+
+    echo.
+    echo updater_launcher.py nao encontrado.
+    echo Build do updater ignorada.
+    echo.
+
+)
 
 :: ==========================================================
 :: COPIA UPDATER PARA PASTA PRINCIPAL
@@ -96,9 +107,18 @@ installer\updater_launcher.py
 
 if exist dist\updater.exe (
 
+    echo Updater gerado com sucesso.
+
     copy /Y ^
     dist\updater.exe ^
     dist\Gerador_XML\updater.exe >nul
+
+) else (
+
+    echo.
+    echo AVISO:
+    echo updater.exe nao foi gerado.
+    echo.
 
 )
 
@@ -121,10 +141,14 @@ if exist dist\Gerador_XML\Gerador_XML.exe (
     echo.
     echo dist\Gerador_XML\
     echo    Gerador_XML.exe
-    echo    updater.exe
     echo    _internal\
+
+    if exist dist\Gerador_XML\updater.exe (
+        echo    updater.exe
+    )
+
     echo.
-    
+
     explorer dist\Gerador_XML
 
     echo msgbox "Build gerada com sucesso!",64,"Fiuza Tecnology" > popup.vbs
@@ -135,6 +159,7 @@ if exist dist\Gerador_XML\Gerador_XML.exe (
 
     echo.
     echo ERRO AO GERAR EXECUTAVEL!
+
 )
 
 echo.
