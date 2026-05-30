@@ -1,7 +1,7 @@
 @echo off
 
 title Fiuza Tecnology - Build Executavel
-mode con: cols=90 lines=32
+mode con: cols=90 lines=35
 color 0B
 
 cd /d "%~dp0"
@@ -19,29 +19,31 @@ echo.
 set PYTHON=py -3.12
 
 :: ==========================================================
-:: LIMPA BUILDS ANTIGOS
+:: LIMPEZA
 :: ==========================================================
 
 echo Limpando builds antigos...
+echo.
 
 if exist build rmdir /s /q build
 if exist dist rmdir /s /q dist
-if exist __pycache__ rmdir /s /q __pycache__
 
-for /d /r %%d in (__pycache__) do @if exist "%%d" rmdir /s /q "%%d"
+for /d /r %%d in (__pycache__) do (
+    if exist "%%d" rmdir /s /q "%%d"
+)
 
 if exist Gerador_XML.spec del /f /q Gerador_XML.spec
+if exist updater.spec del /f /q updater.spec
 
-echo.
-echo Build limpo com sucesso.
+echo Limpeza concluida.
 echo.
 
 :: ==========================================================
-:: GERANDO EXECUTAVEL
+:: BUILD PRINCIPAL
 :: ==========================================================
 
 echo ==========================================================
-echo              GERANDO EXECUTAVEL
+echo           GERANDO GERADOR_XML.EXE
 echo ==========================================================
 echo.
 
@@ -67,7 +69,41 @@ echo.
 main.py
 
 :: ==========================================================
-:: VERIFICA RESULTADO
+:: BUILD DO UPDATER
+:: ==========================================================
+
+echo.
+echo ==========================================================
+echo              GERANDO UPDATER.EXE
+echo ==========================================================
+echo.
+
+%PYTHON% -m PyInstaller ^
+--noconfirm ^
+--clean ^
+--onefile ^
+--windowed ^
+--paths=. ^
+--hidden-import=updater ^
+--hidden-import=core.logs ^
+--icon=assets/icon.ico ^
+--name updater ^
+installer\updater_launcher.py
+
+:: ==========================================================
+:: COPIA UPDATER PARA PASTA PRINCIPAL
+:: ==========================================================
+
+if exist dist\updater.exe (
+
+    copy /Y ^
+    dist\updater.exe ^
+    dist\Gerador_XML\updater.exe >nul
+
+)
+
+:: ==========================================================
+:: RESULTADO
 :: ==========================================================
 
 echo.
@@ -78,20 +114,26 @@ echo.
 
 if exist dist\Gerador_XML\Gerador_XML.exe (
 
-    echo EXECUTAVEL GERADO COM SUCESSO!
     echo.
-    echo Caminho:
+    echo BUILD GERADA COM SUCESSO!
+    echo.
+    echo Estrutura:
+    echo.
     echo dist\Gerador_XML\
+    echo    Gerador_XML.exe
+    echo    updater.exe
+    echo    _internal\
     echo.
-
+    
     explorer dist\Gerador_XML
 
-    echo msgbox "Executavel gerado com sucesso!", 64, "Fiuza Tecnology" > popup.vbs
+    echo msgbox "Build gerada com sucesso!",64,"Fiuza Tecnology" > popup.vbs
     start /wait popup.vbs
     del popup.vbs
 
 ) else (
 
+    echo.
     echo ERRO AO GERAR EXECUTAVEL!
 )
 
