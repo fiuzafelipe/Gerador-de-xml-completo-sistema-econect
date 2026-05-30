@@ -205,33 +205,6 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 lambda: verificar_atualizacao(auto=True)
             )
 
-    def verificar_atualizacao_concluida(self):
-
-        try:
-
-            if os.path.exists("ultima_versao.txt"):
-
-                with open(
-                    "ultima_versao.txt",
-                    "r",
-                    encoding="utf-8"
-                ) as arquivo:
-
-                    versao = arquivo.read().strip()
-
-                messagebox.showinfo(
-                    "Atualização concluída",
-                    f"Sistema atualizado para a versão {versao}"
-                )
-
-                os.remove("ultima_versao.txt")
-
-        except Exception as erro:
-
-            registrar_evento(
-                f"Erro exibindo atualização: {erro}"
-            )
-
         # =========================================================
         # POSICIONAR JANELA
         # =========================================================
@@ -1283,8 +1256,6 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 "Sucesso",
                 "Login realizado com sucesso!"
             )
-            
-            self.verificar_atualizacao_concluida()
             
             # =========================================
             # ABRIR DASHBOARD
