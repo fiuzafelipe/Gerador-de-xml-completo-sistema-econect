@@ -75,20 +75,13 @@ def compactar_com_winrar(caminho):
 
     try:
         subprocess.run(
-            [
-                winrar,
-                "a",
-                "-r",
-                rar_final,
-                caminho
-            ],
+            [winrar, "a", "-r", rar_final, caminho],
             check=True,
             startupinfo=startupinfo
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"WinRAR falhou: {e}")
         )
-
         return rar_final
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"WinRAR falhou: {e}")
 
 
 def compactar_zip(destino):
