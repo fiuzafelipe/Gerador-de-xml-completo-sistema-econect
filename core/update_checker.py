@@ -1,11 +1,9 @@
+import os
 import requests
 import subprocess
-
 from tkinter import messagebox
-
 from version import APP_VERSION
 from core.logs import registrar_evento
-
 
 URL_VERSION = (
     "https://raw.githubusercontent.com/"
@@ -14,34 +12,21 @@ URL_VERSION = (
     "main/version.json"
 )
 
-
 def verificar_atualizacao(auto=False):
-
     try:
-
-        response = requests.get(
-            URL_VERSION,
-            timeout=5
-        )
-
+        response = requests.get(URL_VERSION, timeout=5)
         if response.status_code != 200:
             return
 
         dados = response.json()
-
         versao_online = dados.get("version")
-
         download_url = dados.get("download_url")
 
         # =====================================
         # TEM UPDATE
         # =====================================
-
         if versao_online != APP_VERSION:
-
-            registrar_evento(
-                f"Atualização encontrada: {versao_online}"
-            )
+            registrar_evento(f"Atualização encontrada: {versao_online}")
 
             resposta = messagebox.askyesno(
                 "Atualização disponível",
@@ -52,32 +37,25 @@ def verificar_atualizacao(auto=False):
             )
 
             if resposta:
+                registrar_evento("Iniciando updater...")
 
-                registrar_evento(
-                    "Iniciando updater..."
-                )
-
+                # Usamos shell=True e desvinculamos o processo filho para evitar 
+                # que o Windows retenha a permissão do executável pai.
                 subprocess.Popen(
-                    [
-                        "updater.exe",
-                        download_url
-                    ]
+                    ["updater.exe", download_url],
+                    shell=True,
+                    start_new_session=True
                 )
 
+                # Fecha o programa principal imediatamente e libera o arquivo no Windows
                 os._exit(0)
 
         else:
-
             if not auto:
-
                 messagebox.showinfo(
                     "Sistema atualizado",
-                    "Não há atualizações disponíveis!\n\n"
-                    "Bom uso."
+                    "Não há atualizações disponíveis!\n\nBom uso."
                 )
 
     except Exception as erro:
-
-        registrar_evento(
-            f"Erro ao verificar atualização: {erro}"
-        )
+        registrar_evento(f"Erro ao verificar atualização: {erro}")
