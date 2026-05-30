@@ -54,6 +54,8 @@ echo.
 --paths=. ^
 --collect-all customtkinter ^
 --collect-all pymysql ^
+--collect-all requests ^
+--collect-all certifi ^
 --hidden-import=ui ^
 --hidden-import=ui.login ^
 --hidden-import=ui.dashboard ^
