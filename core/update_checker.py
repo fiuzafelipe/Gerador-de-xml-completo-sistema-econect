@@ -39,13 +39,9 @@ def verificar_atualizacao(auto=False):
             if resposta:
                 registrar_evento("Iniciando updater...")
 
-                # Usamos shell=True e desvinculamos o processo filho para evitar 
-                # que o Windows retenha a permissão do executável pai.
-                subprocess.Popen(
-                    ["updater.exe", download_url],
-                    shell=True,
-                    start_new_session=True
-                )
+                # Exemplo de como deve ficar a chamada no sistema principal:
+                # Passamos o executável, a URL de download (sys.argv[1]) e a versão online (sys.argv[2])
+                subprocess.Popen(["updater.exe", url_download_zip, versao_online])
 
                 # Fecha o programa principal imediatamente e libera o arquivo no Windows
                 os._exit(0)
