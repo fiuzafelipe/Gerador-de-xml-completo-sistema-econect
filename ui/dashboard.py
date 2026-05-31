@@ -194,45 +194,43 @@ class DashboardApp(ctk.CTkToplevel):
         cor_texto_principal = "#1A202C" if tema_ativo in ["white", "padrao"] else tema["destaque"]
         cor_subtitulo = "#4A5568" if tema_ativo in ["white", "padrao"] else "gray"
 
-        ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=self.fonte_titulo_dash, text_color=cor_texto_principal).pack(pady=(2, 0))
-        ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 14, "italic"), text_color=cor_subtitulo).pack(pady=(0, 2))
+        # 📐 RESPONSIVIDADE: Reduzido pady de (2,0) e (0,2) para compactar o topo
+        ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=("Segoe UI", 28, "bold"), text_color=cor_texto_principal).pack(pady=(2, 0))
+        ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 13, "italic"), text_color=cor_subtitulo).pack(pady=(0, 2))
 
-        # 🚀 ALTERAÇÃO: Transformado em um frame rolável para telas pequenas
-        card_dash = ctk.CTkScrollableFrame(
+        # CARD RESPONSIVO (Sem barra de rolagem)
+        card_dash = ctk.CTkFrame(
             self, 
-            corner_radius=28, 
+            corner_radius=20, 
             border_width=1, 
             border_color=tema["destaque"], 
-            fg_color=tema["card"],
-            scrollbar_button_color=tema["destaque"], # Cor da barra combinando com o tema
-            scrollbar_button_hover_color="#2f6fa5"
+            fg_color=tema["card"]
         )
-        card_dash.pack(expand=True, padx=35, pady=(10, 18), fill="both")
+        # 📐 RESPONSIVIDADE: Margens externas reduzidas para dar respiro vertical
+        card_dash.pack(expand=True, padx=20, pady=(4, 10), fill="both")
 
         # Define se o tema é claro para aplicar o contraste
-        tema_ativo = self.config.get("tema_cor", "padrao")
         cor_texto_abas = "#1A202C" if tema_ativo in ["white", "padrao"] else "#FFFFFF"
 
-        # 🚀 A SOLUÇÃO: Passamos text_color diretamente na inicialização do CTkTabview.
-        # É aqui que a biblioteca aceita nativamente e sem estourar erros!
         self.tabs = ctk.CTkTabview(
             card_dash, 
-            corner_radius=15, 
+            corner_radius=12, 
             segmented_button_selected_color=tema["destaque"],
             text_color=cor_texto_abas,
             fg_color=tema["card"]
         )
-        self.tabs.pack(fill="both", expand=True, padx=15, pady=5)
+        # 📐 RESPONSIVIDADE: Pady reduzido de 4 para 2
+        self.tabs.pack(fill="both", expand=True, padx=10, pady=2)
 
-        # 🚀 Agora o .add() fica puramente com o nome da aba, limpo e seguro
         t_xml = self.tabs.add("Gerador de XML")
         self.tabs.add("Monitor de XML")
 
         if self.nivel_acesso == "admin":
             self.tabs.add("MySQL Query")
 
+        # Container principal interno reduzido de pady=5 para 2
         f_main = ctk.CTkFrame(t_xml, fg_color="transparent")
-        f_main.pack(fill="x", padx=30, pady=5)
+        f_main.pack(fill="x", padx=25, pady=2)
 
         f_top = ctk.CTkFrame(f_main, fg_color="transparent")
         f_top.pack(fill="x")
@@ -241,7 +239,6 @@ class DashboardApp(ctk.CTkToplevel):
         f_left.pack(side="left", fill="both", expand=True)
 
         self.add_lbl(f_left, "Razão Social (Base MySQL):", self.fonte_bold)
-        # Forçado o text_color para um cinza escuro legível no White
         self.lbl_razao = ctk.CTkLabel(
             f_left, 
             text="Selecione uma Loja", 
@@ -289,7 +286,8 @@ class DashboardApp(ctk.CTkToplevel):
             print(erro)
             lojas = ["Erro ao carregar lojas"]
 
-        self.loja_cb = ctk.CTkComboBox(f_left, values=lojas, width=400, border_color=tema["destaque"], command=self.atualizar_dados_loja)
+        # 📐 RESPONSIVIDADE: Reduzido a altura do combo de lojas para 32 para poupar espaço vertical
+        self.loja_cb = ctk.CTkComboBox(f_left, values=lojas, width=400, height=32, border_color=tema["destaque"], command=self.atualizar_dados_loja)
         self.loja_cb.pack(anchor="w", padx=10)
 
         if len(lojas) == 1:
@@ -301,41 +299,41 @@ class DashboardApp(ctk.CTkToplevel):
         f_right = ctk.CTkFrame(f_top, fg_color="transparent")
         f_right.pack(side="right", padx=10)
 
-        card_cnpj = ctk.CTkFrame(f_right, width=310, height=80, corner_radius=15, border_width=1, border_color=tema["destaque"], fg_color="transparent")
-        card_cnpj.pack()
+        # 📐 RESPONSIVIDADE: Ajustado para 58px de altura (Super compacto)
+        card_cnpj = ctk.CTkFrame(f_right, width=310, height=58, corner_radius=12, border_width=1, border_color=tema["destaque"], fg_color="transparent")
+        card_cnpj.pack(pady=2)
         card_cnpj.pack_propagate(False)
 
-        # Força o título do CNPJ a ficar escuro
-        ctk.CTkLabel(card_cnpj, text="CNPJ da Loja Selecionada:", font=self.fonte_bold, text_color="#1A202C" if tema_ativo in ["white", "padrao"] else None).pack(pady=(2, 0))
+        ctk.CTkLabel(card_cnpj, text="CNPJ da Loja Selecionada:", font=("Segoe UI", 12, "bold"), text_color="#1A202C" if tema_ativo in ["white", "padrao"] else None).pack(pady=(2, 0))
         
-        # Se for o tema White, usamos um Azul mais escuro e vivo para o CNPJ ter destaque absoluto no fundo branco
         cor_cnpj = "#1D4ED8" if tema_ativo == "white" else tema["destaque"]
-        self.lbl_cnpj = ctk.CTkLabel(card_cnpj, text="00.000.000/0000-00", font=("Segoe UI", 20, "bold"), text_color=cor_cnpj)
+        self.lbl_cnpj = ctk.CTkLabel(card_cnpj, text="00.000.000/0000-00", font=("Segoe UI", 18, "bold"), text_color=cor_cnpj)
         self.lbl_cnpj.pack(expand=True)
 
+        # Fileiras internas com espaçamento vertical nulo (pady=0)
         f_row1 = ctk.CTkFrame(f_main, fg_color="transparent")
-        f_row1.pack(fill="x")
+        f_row1.pack(fill="x", pady=0)
 
         f_tipo = ctk.CTkFrame(f_row1, fg_color="transparent")
         f_tipo.pack(side="left")
         self.add_lbl(f_tipo, "Tipo:", self.fonte_bold)
-        self.tipo_cb = ctk.CTkComboBox(f_tipo, values=["1 - NFC-e", "2 - SAT-CF-e"], width=180, border_color=tema["destaque"])
+        self.tipo_cb = ctk.CTkComboBox(f_tipo, values=["1 - NFC-e", "2 - SAT-CF-e"], width=180, height=32, border_color=tema["destaque"])
         self.tipo_cb.pack(padx=10)
 
         f_stat = ctk.CTkFrame(f_row1, fg_color="transparent")
         f_stat.pack(side="left", padx=20)
         self.add_lbl(f_stat, "Status:", self.fonte_bold)
-        self.status_cb = ctk.CTkComboBox(f_stat, values=["Todos", "102 - Venda NFCe", "103 - Cancelamento", "105 - Inutilização"], width=280, border_color=tema["destaque"])
+        self.status_cb = ctk.CTkComboBox(f_stat, values=["Todos", "102 - Venda NFCe", "103 - Cancelamento", "105 - Inutilização"], width=280, height=32, border_color=tema["destaque"])
         self.status_cb.set("Todos")
         self.status_cb.pack(padx=10)
 
         f_row2 = ctk.CTkFrame(f_main, fg_color="transparent")
-        f_row2.pack(fill="x")
+        f_row2.pack(fill="x", pady=0)
 
         f_pdv = ctk.CTkFrame(f_row2, fg_color="transparent")
         f_pdv.pack(side="left")
         self.add_lbl(f_pdv, "PDV:", self.fonte_bold)
-        self.pdv_cb = ctk.CTkComboBox(f_pdv, values=["Todos"], width=180, border_color=tema["destaque"])
+        self.pdv_cb = ctk.CTkComboBox(f_pdv, values=["Todos"], width=180, height=32, border_color=tema["destaque"])
         self.pdv_cb.pack(padx=10)
 
         f_per = ctk.CTkFrame(f_row2, fg_color="transparent")
@@ -355,49 +353,46 @@ class DashboardApp(ctk.CTkToplevel):
         self.ent_s_ini.bind("<KeyRelease>", self.trava_sequencia)
 
         ctk.CTkLabel(f_seq, text=" a ").pack(side="left")
-        self.ent_s_fim = ctk.CTkEntry(f_seq, width=100, border_color=tema["destaque"], state="disabled")
+        self.ent_s_fim = ctk.CTkEntry(f_seq, width=100, height=32, border_color=tema["destaque"], state="disabled")
         self.ent_s_fim.insert(0, "0")
         self.ent_s_fim.pack(side="left")
 
         self.add_lbl(f_main, "Caminho de Destino:", self.fonte_bold)
         f_path = ctk.CTkFrame(f_main, fg_color="transparent")
         f_path.pack(fill="x", padx=10)
-        self.ent_path = self.criar_campo_dash_placeholder(f_path, "", 340, tema["destaque"])
+        
+        # 📐 RESPONSIVIDADE: Campo de caminho reduzido de 340 para 290 de largura para dar espaço aos botões inline
+        self.ent_path = self.criar_campo_dash_placeholder(f_path, "", 290, tema["destaque"])
 
-        self.btn_procurar = ctk.CTkButton(f_path, text="Procurar", width=80, command=self.escolher_pasta)
+        # 📐 RESPONSIVIDADE: Ajustado a altura (height=32) de TODOS os botões operacionais da fileira
+        self.btn_procurar = ctk.CTkButton(f_path, text="Procurar", width=80, height=32, command=self.escolher_pasta)
         self.btn_procurar.pack(side="left", padx=2)
 
-        self.btn_xml_mes = ctk.CTkButton(f_path, text="XML Mes", width=80, fg_color="#c84a4a", command=lambda: self.automacao_pastas("XML"))
+        self.btn_xml_mes = ctk.CTkButton(f_path, text="XML Mes", width=80, height=32, fg_color="#c84a4a", command=lambda: self.automacao_pastas("XML"))
         self.btn_xml_mes.pack(side="left", padx=2)
 
-        self.btn_xml_falt = ctk.CTkButton(f_path, text="XML Faltantes", width=120, fg_color="#d4ac0d", text_color="black", command=lambda: self.automacao_pastas("XML FALTANTES"))
+        self.btn_xml_falt = ctk.CTkButton(f_path, text="XML Faltantes", width=110, height=32, fg_color="#d4ac0d", text_color="black", font=("Segoe UI", 11, "bold"), command=lambda: self.automacao_pastas("XML FALTANTES"))
         self.btn_xml_falt.pack(side="left", padx=2)
 
-        self.btn_pasta = ctk.CTkButton(f_path, text="Pasta", width=70, fg_color="#e67e22", command=self.criar_pasta_avulsa)
+        self.btn_pasta = ctk.CTkButton(f_path, text="Pasta", width=70, height=32, fg_color="#e67e22", command=self.criar_pasta_avulsa)
         self.btn_pasta.pack(side="left", padx=2)
 
-        self.btn_compactar = ctk.CTkButton(f_path, text="Compactar", width=90, fg_color="#8e44ad", command=self.compactar_manual)
+        self.btn_compactar = ctk.CTkButton(f_path, text="Compactar", width=90, height=32, fg_color="#8e44ad", command=self.compactar_manual)
         self.btn_compactar.pack(side="left", padx=2)
 
-        # Define se o tema é claro para aplicar o contraste no texto de status
-        tema_ativo = self.config.get("tema_cor", "padrao")
         cor_status_gerando = "#1A202C" if tema_ativo in ["white", "padrao"] else "gray"
 
-        # 🚀 Correção de contraste para o texto de ações/status
-        self.lbl_gerando = ctk.CTkLabel(
-            t_xml, 
-            text="Aguardando ação...", 
-            font=("Segoe UI", 12, "italic", "bold"), 
-            text_color=cor_status_gerando
-        )
-        self.lbl_gerando.pack(pady=(2, 0))
+        # 📐 RESPONSIVIDADE: Rodapé ultra colado para não estourar a tela verticalmente
+        self.lbl_gerando = ctk.CTkLabel(t_xml, text="Aguardando ação...", font=("Segoe UI", 12, "italic", "bold"), text_color=cor_status_gerando)
+        self.lbl_gerando.pack(pady=(2, 2))
 
-        self.prog_xml = ctk.CTkProgressBar(t_xml, height=14, progress_color=tema["destaque"])
+        self.prog_xml = ctk.CTkProgressBar(t_xml, height=10, progress_color=tema["destaque"])
         self.prog_xml.set(0)
-        self.prog_xml.pack(fill="x", padx=40, pady=(1, 5))
+        self.prog_xml.pack(pady=(1, 5), fill="x", padx=20)
 
-        self.btn_gerar_final = ctk.CTkButton(t_xml, text="GERAR XML AGORA", font=("Segoe UI", 20, "bold"), fg_color="#2d8a4e", height=55, width=480, corner_radius=15, command=self.gerar_xml_final)
-        self.btn_gerar_final.pack(pady=(0, 10))
+        # 📐 RESPONSIVIDADE: Botão final reduzido de height=55 para height=42
+        self.btn_gerar_final = ctk.CTkButton(t_xml, text="GERAR XML AGORA", font=("Segoe UI", 18, "bold"), fg_color="#2d8a4e", height=42, width=480, corner_radius=12, command=self.gerar_xml_final)
+        self.btn_gerar_final.pack(pady=(0, 6))
 
     def atualizar_dados_loja(self, escolha):
         try:
