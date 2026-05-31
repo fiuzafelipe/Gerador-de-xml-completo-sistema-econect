@@ -10,6 +10,7 @@ from tkinter import messagebox, filedialog
 from core.logs import registrar_evento
 # Importamos o motor real de processamento de XML
 from core.xml_processor import XMLProcessor
+from version import APP_VERSION
 
 MESES = [
     "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO",
@@ -100,12 +101,59 @@ class DashboardApp(ctk.CTkToplevel):
         header = ctk.CTkFrame(self, height=60, fg_color="transparent")
         header.pack(fill="x", pady=5)
 
+        # Botão Sair na extrema direita
         btn_sair = ctk.CTkButton(header, text="⇢ Sair", width=90, fg_color="#c84a4a", command=self.fechar_dashboard)
         btn_sair.pack(side="right", padx=15)
 
-        # 🚀 Vinculado o método self.abrir_logs diretamente no command do botão
+        # Botão Log no meio
         btn_log = ctk.CTkButton(header, text="🧾 Log", width=90, fg_color=tema["destaque"], command=self.abrir_logs)
-        btn_log.pack(side="right")
+        btn_log.pack(side="right", padx=5)
+
+        # 🎩 NOVO: Botão de Versão com o mesmo design refinado posicionado ao lado do Log
+        btn_versao_dash = ctk.CTkButton(
+            header,
+            text=f"🏷️ v{APP_VERSION}",
+            width=85,
+            height=28,  # Ajustado sutilmente para a altura do cabeçalho da dashboard
+            corner_radius=14,
+            border_width=1,
+            border_color=tema["destaque"],
+            fg_color="#1A202C",
+            hover_color="#2D3748",
+            text_color=tema["destaque"],
+            font=("Segoe UI", 11, "bold"),
+            command=self.mostrar_info_desenvolvedor_dash
+        )
+        btn_versao_dash.pack(side="right")
+
+    # =========================================================
+    # 🎩 NOVO: POP-UP DE INFORMAÇÕES DO DESENVOLVEDOR DA DASHBOARD
+    # =========================================================
+    def mostrar_info_desenvolvedor_dash(self):
+        """ Abre a janela pop-up moderna e clara de informações direto da Dashboard """
+        popup = ctk.CTkToplevel(self)
+        popup.title("Sobre o Sistema")
+        popup.geometry("420x220")
+        popup.resizable(False, False)
+        popup.configure(fg_color="#FFFFFF")
+        
+        popup.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() // 2) - (420 // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (220 // 2)
+        popup.geometry(f"420x220+{x}+{y}")
+        
+        popup.attributes("-topmost", True)
+        popup.grab_set()
+
+        ctk.CTkLabel(popup, text="Fiuza Technology", font=("Segoe UI", 22, "bold"), text_color="#3b8ed0").pack(pady=(25, 10))
+        ctk.CTkLabel(popup, text="Aplicação desenvolvida por Felipe Fiuza 🎩", font=("Segoe UI", 15, "bold"), text_color="#1A202C").pack(pady=5)
+        ctk.CTkLabel(popup, text=f"Versão Corrente: v{APP_VERSION} | Todos os direitos reservados", font=("Segoe UI", 11, "italic"), text_color="#718096").pack(pady=(0, 20))
+
+        ctk.CTkButton(
+            popup, text="Entendido", width=120, height=32, corner_radius=16,
+            fg_color="#3b8ed0", hover_color="#2563EB", text_color="#FFFFFF",
+            font=("Segoe UI", 12, "bold"), command=popup.destroy
+        ).pack()
 
     def fechar_dashboard(self):
         try: self.db_conexao.close()

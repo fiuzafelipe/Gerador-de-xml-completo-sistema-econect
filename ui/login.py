@@ -172,51 +172,56 @@ class FiuzaEnterpriseApp(ctk.CTk):
         )
 
     def mostrar_info_desenvolvedor(self):
-        """ Abre uma janela pop-up customizada e moderna com as informações do criador """
+        """ Abre uma janela pop-up customizada, clara e chamativa com as informações do criador """
         popup = ctk.CTkToplevel(self)
         popup.title("Sobre o Sistema")
-        popup.geometry("380x200")
+        popup.geometry("420x220")
         popup.resizable(False, False)
-        popup.configure(fg_color="#111827") # Fundo Dark Moderno
+        
+        # Força o fundo da janela a ser um branco/cinza claro bem limpo e moderno
+        popup.configure(fg_color="#FFFFFF")
         
         # Centraliza o pop-up em relação à tela de login
         popup.update_idletasks()
-        x = self.winfo_x() + (self.winfo_width() // 2) - (380 // 2)
-        y = self.winfo_y() + (self.winfo_height() // 2) - (200 // 2)
-        popup.geometry(f"380x200+{x}+{y}")
+        x = self.winfo_x() + (self.winfo_width() // 2) - (420 // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (220 // 2)
+        popup.geometry(f"420x220+{x}+{y}")
         
         # Mantém o pop-up travado na frente
         popup.attributes("-topmost", True)
         popup.grab_set()
 
-        # Elementos do Design Interno
+        # Título principal em Azul Destaque Chamativo
         ctk.CTkLabel(
             popup, 
             text="Fiuza Technology", 
-            font=("Segoe UI", 20, "bold"), 
+            font=("Segoe UI", 22, "bold"), 
             text_color="#3b8ed0"
-        ).pack(pady=(25, 5))
+        ).pack(pady=(25, 10))
 
+        # O texto exatamente como você solicitou com contraste escuro elegante
         ctk.CTkLabel(
             popup, 
-            text="Aplicação desenvolvida por\nFelipe Fiuza 🎩", 
-            font=("Segoe UI", 14, "medium"), 
-            text_color="#E5E7EB"
+            text="Aplicação desenvolvida por Felipe Fiuza 🎩", 
+            font=("Segoe UI", 15, "bold"), 
+            text_color="#1A202C"
         ).pack(pady=5)
 
+        # Subtítulo complementar discreto
         ctk.CTkLabel(
             popup, 
-            text=f"Versão Corrente: {APP_VERSION} | Soluções em Software", 
+            text=f"Versão Corrente: v{APP_VERSION} | Todos os direitos reservados", 
             font=("Segoe UI", 11, "italic"), 
-            text_color="#9CA3AF"
-        ).pack(pady=(0, 15))
+            text_color="#718096"
+        ).pack(pady=(0, 20))
 
+        # Botão de fechar alinhado ao padrão visual dos seus botões superiores
         ctk.CTkButton(
             popup, 
-            text="Fechar", 
-            width=100, 
-            height=28,
-            corner_radius=6,
+            text="Entendido", 
+            width=120, 
+            height=32,
+            corner_radius=16,
             fg_color="#3b8ed0", 
             hover_color="#2563EB",
             text_color="#FFFFFF",
