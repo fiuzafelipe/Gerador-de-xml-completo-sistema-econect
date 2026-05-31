@@ -139,15 +139,38 @@ class FiuzaEnterpriseApp(ctk.CTk):
         header = ctk.CTkFrame(self, height=70, fg_color="transparent", corner_radius=0)
         header.pack(fill="x")
 
+        # Ajustado a posição relx para dar espaço ao novo botão de versão
         self.frame_temas = ctk.CTkFrame(header, fg_color="transparent")
-        self.frame_temas.place(relx=0.72, rely=0.5, anchor="center")
+        self.frame_temas.place(relx=0.68, rely=0.5, anchor="center")
 
         self.criar_botao_tema(self.frame_temas, "☀ Light", "padrao").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "🌙 Dark", "dark").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "🔵 Blue", "blue").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "🔴 Red", "red").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "⚪ White", "white").pack(side="left", padx=4)
+        
+        # 🎩 NOVO: Botão de Versão dinâmico com mensagem informativa personalizada
+        self.criar_botao_versao(self.frame_temas).pack(side="left", padx=4)
+        
         self.criar_botao_settings(self.frame_temas).pack(side="left", padx=8)
+
+    def criar_botao_versao(self, master):
+        """ Cria o botão com a numeração da versão atual ao lado dos temas """
+        return ctk.CTkButton(
+            master,
+            text=f"v{APP_VERSION}",
+            width=75,
+            height=34,
+            corner_radius=18,
+            fg_color="#1e272e",
+            hover_color="#485460",
+            text_color="#00d2d3",
+            font=("Segoe UI", 12, "bold"),
+            command=lambda: messagebox.showinfo(
+                "Informação do Sistema", 
+                "Aplicação desenvolvida por Felipe Fiuza 🎩\n\nFiuza Technology © 2026"
+            )
+        )
 
     def criar_botao_tema(self, master, texto, tema_nome):
         tema = self.temas[tema_nome]
