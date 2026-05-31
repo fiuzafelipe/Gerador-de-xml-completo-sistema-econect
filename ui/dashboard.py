@@ -21,19 +21,20 @@ class DashboardApp(ctk.CTkToplevel):
         super().__init__(master)
 
         # =====================================================
-        # DADOS E SEGURANÇA DE CONEXÃO
+        # DADOS E SEGURANÇA DE CONEXÃO (CORREÇÃO DE ATRIBUTOS)
         # =====================================================
         self.usuario_atual = usuario
         self.db_conexao = conexao
         
-        # Correção segura para extrair o host do objeto Connection do PyMySQL
-        self.host_conectado = conexao.kwargs.get('host', 'Desconhecido')
+        # Leitura nativa e compatível com qualquer versão do PyMySQL
+        params = getattr(conexao, '_connect_params', {})
         
-        # Mapeia as credenciais para o motor assíncrono ler quando rodar a Thread
-        self.db_host = conexao.kwargs.get('host')
-        self.db_user = conexao.kwargs.get('user')
-        self.db_password = conexao.kwargs.get('password')
-        self.db_name = conexao.kwargs.get('database')
+        # Correção segura para extrair o host e os parâmetros do banco
+        self.host_conectado = params.get('host', 'Desconhecido')
+        self.db_host = params.get('host')
+        self.db_user = params.get('user')
+        self.db_password = params.get('password')
+        self.db_name = params.get('database')
 
         self.nivel_acesso = "admin"
 
