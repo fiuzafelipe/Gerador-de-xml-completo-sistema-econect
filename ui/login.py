@@ -41,6 +41,11 @@ class FiuzaEnterpriseApp(ctk.CTk):
 
     def __init__(self):
         super().__init__()
+        
+        # 🚀 RETIRAR ZOOM DO WINDOWS (DPI AWARE)
+        # Força o aplicativo a rodar estritamente na escala real de 100%
+        ctk.set_widget_scaling(1.0)
+        ctk.set_window_scaling(1.0)
 
         # =====================================================
         # APPEARANCE
