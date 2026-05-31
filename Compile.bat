@@ -132,8 +132,8 @@ echo.
 echo Como o Windows bloqueia copias automatizadas nesta pasta,
 echo faça a uniao manual para o seu instalador:
 echo.
-echo 1. Abra a pasta 'dist_updater', copie o 'updater.exe'.
-echo 2. Cole ele dentro de 'dist\Gerador_XML\'.
+echo 1. Abra a pasta 'dist', copie os arquivos.
+echo 2. Cole ele dentro de 'dist_updater\'.
 echo.
 
 :: Abre as duas pastas na tela para facilitar o seu clique e arrastar
