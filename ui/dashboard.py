@@ -2,6 +2,7 @@ import os
 import shutil
 import time
 import socket
+import subprocess  # Adicionado para disparar o Bloco de Notas de forma assíncrona
 from datetime import datetime
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
@@ -21,24 +22,26 @@ class DashboardApp(ctk.CTkToplevel):
         super().__init__(master)
 
         # =====================================================
-        # DADOS E SEGURANÇA DE CONEXÃO (CORREÇÃO DE ATRIBUTOS)
+        # DADOS E SEGURANÇA DE CONEXÃO (LEITURA MULTI-VERSÃO)
         # =====================================================
         self.usuario_atual = usuario
         self.db_conexao = conexao
         
-        # Leitura nativa e compatível com qualquer versão do PyMySQL
+        # Coleta os parâmetros de várias formas possíveis para garantir compatibilidade
         params = getattr(conexao, '_connect_params', {})
         
-        # Correção segura para extrair o host e os parâmetros do banco
-        self.host_conectado = params.get('host', 'Desconhecido')
-        self.db_host = params.get('host')
-        self.db_user = params.get('user')
-        self.db_password = params.get('password')
-        self.db_name = params.get('database')
+        # Tenta pegar o host por 3 caminhos diferentes do PyMySQL
+        host = params.get('host') or getattr(conexao, 'host', None) or getattr(conexao, 'server_host', 'localhost')
+        database_name = params.get('database') or getattr(conexao, 'db', 'concentrador')
+
+        # Exibe o Host e o Schema de forma elegante
+        self.host_conectado = f"{host} ({database_name})"
+        self.db_host = host
+        self.db_user = params.get('user') or getattr(conexao, 'user', 'root')
+        self.db_password = params.get('password') or getattr(conexao, 'password', '')
+        self.db_name = database_name
 
         self.nivel_acesso = "admin"
-
-        # Instancia o motor real de processamento passando esta interface como alvo
         self.motor_xml = XMLProcessor(self)
 
         # =====================================================
@@ -100,7 +103,8 @@ class DashboardApp(ctk.CTkToplevel):
         btn_sair = ctk.CTkButton(header, text="⇢ Sair", width=90, fg_color="#c84a4a", command=self.fechar_dashboard)
         btn_sair.pack(side="right", padx=15)
 
-        btn_log = ctk.CTkButton(header, text="🧾 Log", width=90, fg_color=tema["destaque"])
+        # 🚀 Vinculado o método self.abrir_logs diretamente no command do botão
+        btn_log = ctk.CTkButton(header, text="🧾 Log", width=90, fg_color=tema["destaque"], command=self.abrir_logs)
         btn_log.pack(side="right")
 
     def fechar_dashboard(self):
@@ -292,7 +296,6 @@ class DashboardApp(ctk.CTkToplevel):
         self.prog_xml.set(0)
         self.prog_xml.pack(fill="x", padx=40, pady=(1, 5))
 
-        # Atribui o método unificado para disparar a thread real de geração
         self.btn_gerar_final = ctk.CTkButton(t_xml, text="GERAR XML AGORA", font=("Segoe UI", 20, "bold"), fg_color="#2d8a4e", height=55, width=480, corner_radius=15, command=self.gerar_xml_final)
         self.btn_gerar_final.pack(pady=(0, 10))
 
@@ -391,7 +394,28 @@ class DashboardApp(ctk.CTkToplevel):
         except Exception as erro:
             messagebox.showerror("Erro", str(erro))
 
-    # Conecta o clique do botão diretamente ao motor assíncrono real do core
     def gerar_xml_final(self):
-        # Dispara o processamento com as queries reais e a atualização segura da barra de progresso
         self.motor_xml.executar_processamento_xml()
+
+    # =========================================================
+    # VISUALIZADOR DE LOGS INTEGRADO NO BLOCO DE NOTAS
+    # =========================================================
+    def abrir_logs(self):
+        """ Abre o arquivo de logs do sistema de forma segura e assíncrona """
+        caminho_log = "logs_sistema.json"
+        
+        try:
+            if os.path.exists(caminho_log):
+                # Dispara o notepad.exe abrindo o json sem travar o loop de eventos da interface
+                subprocess.Popen(["notepad.exe", caminho_log])
+            else:
+                messagebox.showinfo(
+                    "Logs do Sistema", 
+                    "Nenhum log gerado neste terminal até o momento.\n\n"
+                    "O arquivo 'logs_sistema.json' será alimentado automaticamente ao gerar XMLs."
+                )
+        except Exception as erro:
+            messagebox.showerror(
+                "Erro de E/S", 
+                f"Falha ao invocar o editor de texto do Windows:\n{str(erro)}"
+            )
