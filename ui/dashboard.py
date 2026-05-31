@@ -84,7 +84,11 @@ class DashboardApp(ctk.CTkToplevel):
         self.geometry(f"{largura}x{altura}+{x}+{y}")
 
     def add_lbl(self, master, texto, fonte):
-        lbl = ctk.CTkLabel(master, text=texto, font=fonte)
+        # Se o tema for 'white' ou 'padrao', usa Grafite Escuro. Caso contrário, deixa o padrão do CTk
+        tema_atual = self.config.get("tema_cor", "padrao")
+        cor_texto = "#1A202C" if tema_atual in ["white", "padrao"] else None
+        
+        lbl = ctk.CTkLabel(master, text=texto, font=fonte, text_color=cor_texto)
         lbl.pack(anchor="w", padx=10, pady=(4, 2))
         return lbl
 
@@ -96,29 +100,32 @@ class DashboardApp(ctk.CTkToplevel):
 
     def criar_cabecalho(self):
         tema = self.temas[self.config.get("tema_cor", "padrao")]
+        tema_ativo = self.config.get("tema_cor", "padrao")
+        
         header = ctk.CTkFrame(self, height=60, fg_color="transparent")
         header.pack(fill="x", pady=5)
 
         # Botão Sair na extrema direita
-        btn_sair = ctk.CTkButton(header, text="⇢ Sair", width=90, fg_color="#c84a4a", command=self.fechar_dashboard)
+        btn_sair = ctk.CTkButton(header, text="⇢ Sair", width=90, fg_color="#c84a4a", text_color="#FFFFFF", command=self.fechar_dashboard)
         btn_sair.pack(side="right", padx=15)
 
-        # Botão Log no meio
-        btn_log = ctk.CTkButton(header, text="🧾 Log", width=90, fg_color=tema["destaque"], command=self.abrir_logs)
+        # 🚀 Correção do Log: se for tema claro, força o texto a ser Grafite Escuro
+        cor_texto_btn = "#1A202C" if tema_ativo in ["white", "padrao"] else "#FFFFFF"
+        btn_log = ctk.CTkButton(header, text="🧾 Log", width=90, fg_color=tema["destaque"], text_color=cor_texto_btn, command=self.abrir_logs)
         btn_log.pack(side="right", padx=5)
 
-        # 🎩 NOVO: Botão de Versão com o mesmo design refinado posicionado ao lado do Log
+        # Botão de Versão com o mesmo ajuste de contraste
         btn_versao_dash = ctk.CTkButton(
             header,
             text=f"🏷️ v{APP_VERSION}",
             width=85,
-            height=28,  # Ajustado sutilmente para a altura do cabeçalho da dashboard
+            height=28,
             corner_radius=14,
             border_width=1,
             border_color=tema["destaque"],
-            fg_color="#1A202C",
-            hover_color="#2D3748",
-            text_color=tema["destaque"],
+            fg_color="#1A202C" if tema_ativo != "white" else "#FFFFFF", # Inverte o fundo no White
+            hover_color="#2D3748" if tema_ativo != "white" else "#E2E8F0",
+            text_color=tema["destaque"] if tema_ativo != "white" else "#1A202C",
             font=("Segoe UI", 11, "bold"),
             command=self.mostrar_info_desenvolvedor_dash
         )
@@ -182,15 +189,33 @@ class DashboardApp(ctk.CTkToplevel):
         self.configure(fg_color=tema["janela"])
         self.criar_cabecalho()
 
-        ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=self.fonte_titulo_dash, text_color=tema["destaque"]).pack(pady=(2, 0))
-        ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 14, "italic"), text_color="gray").pack(pady=(0, 2))
+        # Define cores dinâmicas para os textos de boas-vindas com base no tema claro
+        tema_ativo = self.config.get("tema_cor", "padrao")
+        cor_texto_principal = "#1A202C" if tema_ativo in ["white", "padrao"] else tema["destaque"]
+        cor_subtitulo = "#4A5568" if tema_ativo in ["white", "padrao"] else "gray"
+
+        ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=self.fonte_titulo_dash, text_color=cor_texto_principal).pack(pady=(2, 0))
+        ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 14, "italic"), text_color=cor_subtitulo).pack(pady=(0, 2))
 
         card_dash = ctk.CTkFrame(self, corner_radius=20, border_width=1, border_color=tema["destaque"], fg_color=tema["card"])
         card_dash.pack(expand=True, padx=40, pady=(0, 5), fill="both")
 
-        self.tabs = ctk.CTkTabview(card_dash, corner_radius=15, segmented_button_selected_color=tema["destaque"], fg_color=tema["card"])
+        # Define se o tema é claro para aplicar o contraste
+        tema_ativo = self.config.get("tema_cor", "padrao")
+        cor_texto_abas = "#1A202C" if tema_ativo in ["white", "padrao"] else "#FFFFFF"
+
+        # 🚀 A SOLUÇÃO: Passamos text_color diretamente na inicialização do CTkTabview.
+        # É aqui que a biblioteca aceita nativamente e sem estourar erros!
+        self.tabs = ctk.CTkTabview(
+            card_dash, 
+            corner_radius=15, 
+            segmented_button_selected_color=tema["destaque"],
+            text_color=cor_texto_abas,
+            fg_color=tema["card"]
+        )
         self.tabs.pack(fill="both", expand=True, padx=15, pady=5)
 
+        # 🚀 Agora o .add() fica puramente com o nome da aba, limpo e seguro
         t_xml = self.tabs.add("Gerador de XML")
         self.tabs.add("Monitor de XML")
 
@@ -207,7 +232,13 @@ class DashboardApp(ctk.CTkToplevel):
         f_left.pack(side="left", fill="both", expand=True)
 
         self.add_lbl(f_left, "Razão Social (Base MySQL):", self.fonte_bold)
-        self.lbl_razao = ctk.CTkLabel(f_left, text="Selecione uma Loja", text_color="gray", font=("Segoe UI", 12, "italic"))
+        # Forçado o text_color para um cinza escuro legível no White
+        self.lbl_razao = ctk.CTkLabel(
+            f_left, 
+            text="Selecione uma Loja", 
+            text_color="#4A5568" if tema_ativo in ["white", "padrao"] else "gray", 
+            font=("Segoe UI", 12, "italic")
+        )
         self.lbl_razao.pack(anchor="w", padx=10)
 
         self.add_lbl(f_left, "Selecionar Loja:", self.fonte_bold)
@@ -265,8 +296,12 @@ class DashboardApp(ctk.CTkToplevel):
         card_cnpj.pack()
         card_cnpj.pack_propagate(False)
 
-        ctk.CTkLabel(card_cnpj, text="CNPJ da Loja Selecionada:", font=self.fonte_bold).pack(pady=(2, 0))
-        self.lbl_cnpj = ctk.CTkLabel(card_cnpj, text="00.000.000/0000-00", font=("Segoe UI", 20, "bold"), text_color=tema["destaque"])
+        # Força o título do CNPJ a ficar escuro
+        ctk.CTkLabel(card_cnpj, text="CNPJ da Loja Selecionada:", font=self.fonte_bold, text_color="#1A202C" if tema_ativo in ["white", "padrao"] else None).pack(pady=(2, 0))
+        
+        # Se for o tema White, usamos um Azul mais escuro e vivo para o CNPJ ter destaque absoluto no fundo branco
+        cor_cnpj = "#1D4ED8" if tema_ativo == "white" else tema["destaque"]
+        self.lbl_cnpj = ctk.CTkLabel(card_cnpj, text="00.000.000/0000-00", font=("Segoe UI", 20, "bold"), text_color=cor_cnpj)
         self.lbl_cnpj.pack(expand=True)
 
         f_row1 = ctk.CTkFrame(f_main, fg_color="transparent")
@@ -335,7 +370,17 @@ class DashboardApp(ctk.CTkToplevel):
         self.btn_compactar = ctk.CTkButton(f_path, text="Compactar", width=90, fg_color="#8e44ad", command=self.compactar_manual)
         self.btn_compactar.pack(side="left", padx=2)
 
-        self.lbl_gerando = ctk.CTkLabel(t_xml, text="Aguardando ação...", font=("Segoe UI", 11, "italic"), text_color="gray")
+        # Define se o tema é claro para aplicar o contraste no texto de status
+        tema_ativo = self.config.get("tema_cor", "padrao")
+        cor_status_gerando = "#1A202C" if tema_ativo in ["white", "padrao"] else "gray"
+
+        # 🚀 Correção de contraste para o texto de ações/status
+        self.lbl_gerando = ctk.CTkLabel(
+            t_xml, 
+            text="Aguardando ação...", 
+            font=("Segoe UI", 12, "italic", "bold"), 
+            text_color=cor_status_gerando
+        )
         self.lbl_gerando.pack(pady=(2, 0))
 
         self.prog_xml = ctk.CTkProgressBar(t_xml, height=14, progress_color=tema["destaque"])
@@ -349,21 +394,42 @@ class DashboardApp(ctk.CTkToplevel):
         try:
             cod = escolha.split(" - ")[0]
             razao = escolha.split(" - ")[1]
-            self.lbl_razao.configure(text=razao)
+
+            # Captura o tema atual para aplicar as regras de contraste visual
+            tema_ativo = self.config.get("tema_cor", "padrao")
+
+            # Atualiza a Razão Social mantendo o contraste escuro no tema White
+            self.lbl_razao.configure(
+                text=razao, 
+                text_color="#4A5568" if tema_ativo in ["white", "padrao"] else "gray"
+            )
 
             with self.db_conexao.cursor() as cursor:
+                # Busca e atualiza os PDVs da loja selecionada
                 cursor.execute("SELECT numero_pdv FROM pdv WHERE codigo_loja=%s AND situacao_pdv IN (2, 3) ORDER BY numero_pdv", (cod,))
                 pdvs = [str(r["numero_pdv"]) for r in cursor.fetchall()]
                 self.pdv_cb.configure(values=["Todos"] + pdvs)
                 self.pdv_cb.set("Todos")
 
+                # Busca o CNPJ da loja selecionada
                 cursor.execute("SELECT cnpj FROM loja WHERE codigo_loja=%s", (cod,))
                 res = cursor.fetchone()
                 if res:
                     p = "".join(filter(str.isdigit, str(res["cnpj"]))).zfill(14)
-                    self.lbl_cnpj.configure(text=f"{p[:2]}.{p[2:5]}.{p[5:8]}/{p[8:12]}-{p[12:]}")
+                    
+                    # Se for tema White, aplica um azul mais escuro e vivo para destacar no fundo branco
+                    cor_cnpj = "#1D4ED8" if tema_ativo == "white" else self.temas[tema_ativo]["destaque"]
+                    
+                    # Renderiza o CNPJ formatado com a cor calibrada de contraste
+                    self.lbl_cnpj.configure(
+                        text=f"{p[:2]}.{p[2:5]}.{p[5:8]}/{p[8:12]}-{p[12:]}",
+                        text_color=cor_cnpj
+                    )
         except Exception:
-            self.lbl_cnpj.configure(text="Erro ao carregar")
+            self.lbl_cnpj.configure(
+                text="Erro ao carregar",
+                text_color="#c84a4a" # Vermelho em caso de falha de carregamento
+            )
 
     def trava_sequencia(self, event=None):
         valor = self.ent_s_ini.get().strip()

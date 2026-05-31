@@ -435,7 +435,9 @@ class FiuzaEnterpriseApp(ctk.CTk):
                 return
 
             registrar_evento(f"Login efetuado: {usuario}")
-            self.lbl_status.configure(text="Conectando ao MySQL...", text_color="#d6d6d6")
+            
+            # 🚀 AJUSTE DEFINITIVO: Cor universal de alto contraste para TODOS os temas
+            self.lbl_status.configure(text="Conectando ao MySQL...", text_color="#3b8ed0")
             self.prog_login.set(0.6)
             self.update()
 
