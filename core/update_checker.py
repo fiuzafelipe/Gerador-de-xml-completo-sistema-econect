@@ -1,4 +1,5 @@
 import os
+import sys  # Importado para usar o encerramento limpo via sys.exit(0)
 import requests
 import subprocess
 from tkinter import messagebox
@@ -20,7 +21,7 @@ def verificar_atualizacao(auto=False):
 
         dados = response.json()
         versao_online = dados.get("version")
-        download_url = dados.get("download_url")
+        download_url = dados.get("download_url")  # Var oficial capturada do JSON
 
         # =====================================
         # TEM UPDATE
@@ -39,12 +40,32 @@ def verificar_atualizacao(auto=False):
             if resposta:
                 registrar_evento("Iniciando updater...")
 
-                # Exemplo de como deve ficar a chamada no sistema principal:
-                # Passamos o executável, a URL de download (sys.argv[1]) e a versão online (sys.argv[2])
-                subprocess.Popen(["updater.exe", url_download_zip, versao_online])
+                try:
+                    # 🚀 PASSO 1: Salva o arquivo local temporário como Plano B de redundância
+                    with open("ultima_versao.txt", "w", encoding="utf-8") as f:
+                        f.write(str(versao_online))
+                    
+                    caminho_updater = "updater.exe"
 
-                # Fecha o programa principal imediatamente e libera o arquivo no Windows
-                os._exit(0)
+                    if os.path.exists(caminho_updater):
+                        # 🚀 PASSO 2: Correção da variável antiga 'url_download_zip' para 'download_url'
+                        # Passando os dois argumentos que o novo updater_launcher.py precisa
+                        subprocess.Popen([caminho_updater, download_url, str(versao_online)], shell=True)
+                        
+                        # 🚀 PASSO 3: Encerramento limpo liberando o handle do executável pai
+                        sys.exit(0)
+                    else:
+                        messagebox.showerror(
+                            "Erro de Atualização", 
+                            "O arquivo executável 'updater.exe' não foi localizado na raiz do sistema."
+                        )
+                
+                except Exception as erro_disparo:
+                    registrar_evento(f"Falha ao invocar o processo do atualizador: {erro_disparo}")
+                    messagebox.showerror(
+                        "Erro Crítico", 
+                        f"Não foi possível iniciar o atualizador de pacotes:\n{str(erro_disparo)}"
+                    )
 
         else:
             if not auto:
