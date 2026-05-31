@@ -456,12 +456,15 @@ class FiuzaEnterpriseApp(ctk.CTk):
             registrar_evento("Conexão MySQL realizada com sucesso.")
             messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
             
-            # --- ABERTURA ALINHADA DA DASHBOARD ---
+            # =========================================
+            # ABRIR DASHBOARD (PASSANDO O TEMA SELECIONADO)
+            # =========================================
             from ui.dashboard import DashboardApp
             self.withdraw()
             
-            # Instancia o topo da Dashboard vinculando a esta janela raiz
-            dashboard = DashboardApp(self, usuario, conexao)
+            # 🚀 ENGENHARIA: Passamos o tema ativo como o 4º parâmetro da Dashboard
+            tema_ativo = self.config_app["tema_cor"]
+            dashboard = DashboardApp(self, usuario, conexao, tema_ativo)
 
         except Exception as erro:
             self.prog_login.set(0)

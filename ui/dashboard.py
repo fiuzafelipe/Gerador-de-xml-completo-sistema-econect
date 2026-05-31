@@ -19,7 +19,8 @@ MESES = [
 
 class DashboardApp(ctk.CTkToplevel):
 
-    def __init__(self, master, usuario, conexao):
+    # 🚀 Alterado o cabeçalho para receber o parâmetro 'tema_atual'
+    def __init__(self, master, usuario, conexao, tema_atual="padrao"):
         super().__init__(master)
 
         # =====================================================
@@ -28,14 +29,10 @@ class DashboardApp(ctk.CTkToplevel):
         self.usuario_atual = usuario
         self.db_conexao = conexao
         
-        # Coleta os parâmetros de várias formas possíveis para garantir compatibilidade
         params = getattr(conexao, '_connect_params', {})
-        
-        # Tenta pegar o host por 3 caminhos diferentes do PyMySQL
         host = params.get('host') or getattr(conexao, 'host', None) or getattr(conexao, 'server_host', 'localhost')
         database_name = params.get('database') or getattr(conexao, 'db', 'concentrador')
 
-        # Exibe o Host e o Schema de forma elegante
         self.host_conectado = f"{host} ({database_name})"
         self.db_host = host
         self.db_user = params.get('user') or getattr(conexao, 'user', 'root')
@@ -46,7 +43,7 @@ class DashboardApp(ctk.CTkToplevel):
         self.motor_xml = XMLProcessor(self)
 
         # =====================================================
-        # CONFIG
+        # CONFIG (AGORA RECEPTIVA AO TEMA DO LOGIN)
         # =====================================================
         self.title("Fiuza Technology - Gerador de XML Completo")
         self.geometry("1100x720")
@@ -60,9 +57,10 @@ class DashboardApp(ctk.CTkToplevel):
         self.fonte_bold = ("Segoe UI", 14, "bold")
 
         # =====================================================
-        # TEMA
+        # TEMA DINÂMICO
         # =====================================================
-        self.config = {"tema_cor": "padrao"}
+        # 🚀 O segredo: Herda o tema selecionado na tela anterior!
+        self.config = {"tema_cor": tema_atual}
         self.temas = {
             "padrao": {"janela": "#EDEDED", "card": "#F7F7F7", "destaque": "#3b8ed0"},
             "blue": {"janela": "#E9EEF5", "card": "#F5F7FA", "destaque": "#3b8ed0"},
@@ -75,7 +73,7 @@ class DashboardApp(ctk.CTkToplevel):
         # START
         # =====================================================
         self.setup_dashboard()
-        registrar_evento(f"Dashboard iniciada: {usuario}")
+        registrar_evento(f"Dashboard iniciada: {usuario} com o tema {tema_atual}")
 
     def posicionar_janela(self):
         self.update_idletasks()
