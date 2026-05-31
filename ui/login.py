@@ -246,30 +246,92 @@ class FiuzaEnterpriseApp(ctk.CTk):
         )
 
     def abrir_settings(self):
+        """ Abre a janela de configurações do sistema totalmente centralizada e moderna """
         janela = ctk.CTkToplevel(self)
         janela.title("Configurações")
-        janela.geometry("350x180")
+        
+        # 📐 Definição exata das dimensões da sua janela de configurações
+        largura_config = 420
+        altura_config = 240
         janela.resizable(False, False)
+        
+        # Força o fundo a ser branco limpo acompanhando o padrão do pop-up 'Sobre'
+        janela.configure(fg_color="#FFFFFF")
+
+        # 🚀 O SEGREDO DA CENTRALIZAÇÃO:
+        # Pega as coordenadas e largura da tela de login para calcular o centro geométrico perfeito
+        janela.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() // 2) - (largura_config // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (altura_config // 2)
+        janela.geometry(f"{largura_config}x{altura_config}+{x}+{y}")
+
+        # Mantém a janela travada na frente e retém o foco absoluto do usuário
+        janela.attributes("-topmost", True)
         janela.grab_set()
 
-        ctk.CTkLabel(janela, text="Configurações do Sistema", font=("Segoe UI", 18, "bold"), justify="center").pack(pady=(20, 15), fill="x")
+        # Título principal em Azul Destaque Chamativo
+        ctk.CTkLabel(
+            janela, 
+            text="Configurações do Sistema", 
+            font=("Segoe UI", 20, "bold"), 
+            text_color="#3b8ed0"
+        ).pack(pady=(22, 10), fill="x")
 
+        # Configuração do Checkbox de Atualização Automática com contraste escuro
         self.var_auto_update = ctk.BooleanVar(value=self.config_app.get("auto_update", True))
-        check_update = ctk.CTkCheckBox(janela, text="Atualizações automáticas", variable=self.var_auto_update, font=("Segoe UI", 14))
+        check_update = ctk.CTkCheckBox(
+            janela, 
+            text="Atualizações automáticas do sistema", 
+            variable=self.var_auto_update, 
+            font=("Segoe UI", 13, "bold"),
+            text_color="#1A202C",       # Contraste escuro para fundo claro
+            checkmark_color="#FFFFFF",
+            fg_color="#3b8ed0"
+        )
         check_update.pack(pady=10)
 
+        # Container dos botões inferiores
         frame_btns = ctk.CTkFrame(janela, fg_color="transparent")
-        frame_btns.pack(pady=20)
+        frame_btns.pack(pady=(15, 10))
 
-        # Envolve a chamada de verificação manual de update
-        ctk.CTkButton(frame_btns, text="Verificar atualizações", width=170, height=40, corner_radius=12, fg_color="#3b8ed0", hover_color="#2f6fa5", command=lambda: verificar_atualizacao(auto=False)).pack(side="left", padx=5)
-        ctk.CTkButton(frame_btns, text="Salvar", width=120, height=40, corner_radius=12, command=lambda: self.salvar_settings(janela)).pack(side="left", padx=5)
+        # Botão: Verificar Atualizações (Pílula Azul)
+        # 🚀 AJUSTE: O lambda agora destrói a janela primeiro e depois dispara a verificação
+        ctk.CTkButton(
+            frame_btns, 
+            text="🔄 Verificar Atualizações", 
+            width=180, 
+            height=36, 
+            corner_radius=18, 
+            fg_color="#3b8ed0", 
+            hover_color="#2f6fa5",
+            text_color="#FFFFFF",
+            font=("Segoe UI", 12, "bold"),
+            command=lambda: [janela.destroy(), verificar_atualizacao(auto=False)]
+        ).pack(side="left", padx=6)
+
+        # Botão: Salvar Configurações (Pílula Verde de Sucesso)
+        ctk.CTkButton(
+            frame_btns, 
+            text="💾 Salvar", 
+            width=110, 
+            height=36, 
+            corner_radius=18, 
+            fg_color="#2d8a4e",
+            hover_color="#216f3e",
+            text_color="#FFFFFF",
+            font=("Segoe UI", 12, "bold"),
+            command=lambda: self.salvar_settings(janela)
+        ).pack(side="left", padx=6)
 
     def salvar_settings(self, janela):
         self.config_app["auto_update"] = self.var_auto_update.get()
         self.salvar_config()
-        messagebox.showinfo("Configuração", "Configurações salvas com sucesso.")
+        
+        # 🚀 AJUSTE: Fecha a janela de configurações primeiro
         janela.destroy()
+        
+        # 🚀 AJUSTE: Exibe a popup logo em seguida com o novo texto solicitado
+        messagebox.showinfo("Configuração", "Configurações salvas com sucesso!")
 
     def alterar_tema(self, tema_nome):
         self.config_app["tema_cor"] = tema_nome
