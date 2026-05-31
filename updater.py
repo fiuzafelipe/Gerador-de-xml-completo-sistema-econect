@@ -31,9 +31,10 @@ IGNORAR_UPDATE = [
 # =========================================================
 # BAIXAR UPDATE
 # =========================================================
-def baixar_atualizacao(url_zip):
+def baixar_atualizacao(url_zip, callback_progresso=None, callback_status=None):
     temp_dir = None
     try:
+        if callback_status: callback_status("Conectando ao servidor...")
         registrar_evento("Iniciando download da atualização...")
 
         temp_dir = tempfile.mkdtemp()
@@ -43,51 +44,53 @@ def baixar_atualizacao(url_zip):
         if response.status_code != 200:
             raise Exception("Falha ao baixar atualização.")
 
+        # Coleta o tamanho total do arquivo para calcular a porcentagem
+        total_size = int(response.headers.get('content-length', 0))
+        bytes_baixados = 0
+
         with open(zip_path, "wb") as arquivo:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     arquivo.write(chunk)
+                    bytes_baixados += len(chunk)
+                    if total_size > 0 and callback_progresso:
+                        # Calcula a porcentagem real e empurra para a UI do atualizador
+                        porcentagem = bytes_baixados / total_size
+                        callback_progresso(porcentagem)
 
+        if callback_status: callback_status("Extraindo arquivos...")
         registrar_evento("Download concluído. Extraindo arquivos...")
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
 
         pasta_extraida = temp_dir
-        registrar_evento(f"Conteúdo extraído: {os.listdir(pasta_extraida)}")
 
         # Validação de integridade do pacote baixado
         arquivos_necessarios = ["Gerador_XML.exe", "_internal", "assets"]
         for item in arquivos_necessarios:
             if not os.path.exists(os.path.join(pasta_extraida, item)):
-                raise Exception(f"Arquivo obrigatório não encontrado no pacote de atualização: {item}")
+                raise Exception(f"Arquivo obrigatório não encontrado no pacote: {item}")
 
-        # Identifica a pasta onde o sistema principal está instalado
         if getattr(sys, "frozen", False):
             pasta_atual = os.path.dirname(sys.executable)
         else:
             pasta_atual = os.path.dirname(os.path.abspath(__file__))
 
-        registrar_evento(f"Pasta de instalação alvo: {pasta_atual}")
-
-        # 🚀 DELAY DE SEGURANÇA: Dá tempo para o processo pai (Gerador_XML.exe) morrer completamente
+        if callback_status: callback_status("Substituindo binários...")
         time.sleep(2)
 
-        # =====================================================
-        # SUBSTITUI ARQUIVOS COM TRATAMENTO DE PERMISSÃO
-        # =====================================================
+        # Substituição atômica de arquivos
         for item in os.listdir(pasta_extraida):
             if item in IGNORAR_UPDATE:
-                registrar_evento(f"Ignorado (Item protegido): {item}")
                 continue
 
             origem = os.path.join(pasta_extraida, item)
             destino = os.path.join(pasta_atual, item)
 
-            # --- REMOVE VERSÃO ANTIGA COM RETENTATIVAS ---
             if os.path.exists(destino):
                 removido = False
-                for tentativa in range(3):  # Tenta até 3 vezes se o Windows travar o arquivo
+                for tentativa in range(3):
                     try:
                         if os.path.isdir(destino):
                             shutil.rmtree(destino)
@@ -95,30 +98,24 @@ def baixar_atualizacao(url_zip):
                             os.remove(destino)
                         removido = True
                         break
-                    except Exception as erro_perm:
-                        registrar_evento(f"[Tentativa {tentativa+1}] Arquivo {item} travado pelo Windows, aguardando... Erro: {erro_perm}")
-                        time.sleep(1.5)  # Aguarda um pouco antes de tentar novamente
+                    except:
+                        time.sleep(1.5)
 
                 if not removido:
-                    raise PermissionError(f"O Windows negou acesso para substituir o item '{item}'. Feche o sistema por completo e tente novamente.")
+                    raise PermissionError(f"Acesso negado pelo Windows ao substituir o item '{item}'.")
 
-            # --- COPIA VERSÃO NOVA ---
-            try:
-                if os.path.isdir(origem):
-                    shutil.copytree(origem, destino)
-                else:
-                    shutil.copy2(origem, destino)
-                registrar_evento(f"Sucesso ao atualizar: {item}")
-            except Exception as erro:
-                registrar_evento(f"ERRO CRÍTICO ao copiar {item}: {erro}")
-                raise
+            if os.path.isdir(origem):
+                shutil.copytree(origem, destino)
+            else:
+                shutil.copy2(origem, destino)
 
         registrar_evento("Atualização concluída com sucesso.")
-        messagebox.showinfo("Sucesso", "O sistema foi atualizado com sucesso!\n\nInicie o Gerador de XML novamente.")
+        return True
 
     except Exception as erro:
         registrar_evento(f"Erro no processo de update: {erro}")
         messagebox.showerror("Erro no Update", f"Não foi possível concluir a atualização automática:\n\n{str(erro)}")
+        return False
     finally:
         if temp_dir and os.path.exists(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
