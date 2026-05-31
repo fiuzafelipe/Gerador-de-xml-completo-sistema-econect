@@ -150,14 +150,31 @@ class UpdaterGUI:
         sys.exit(0)
 
 def main():
-    # Verifica se os argumentos mínimos foram passados (Nome do script, URL e Versão)
-    if len(sys.argv) < 3:
-        # Fallback de segurança caso seja aberto manualmente sem argumentos
-        download_url = sys.argv[1] if len(sys.argv) > 1 else ""
-        versao_online = "Nova Versão"
-    else:
+    # Fallbacks padrão de segurança (Trocado '1.0.7' por uma string genérica)
+    download_url = ""
+    versao_online = "Nova Versão" 
+
+    # Se o sistema principal passou os argumentos...
+    if len(sys.argv) >= 3:
         download_url = sys.argv[1]
-        versao_online = sys.argv[2] # 🚀 Captura o segundo argumento enviado
+        versao_online = sys.argv[2]
+    elif len(sys.argv) == 2:
+        download_url = sys.argv[1]
+        
+    # Redundância física: Se o arquivo temporário existir, a palavra final é dele!
+    if os.path.exists("ultima_versao.txt"):
+        try:
+            with open("ultima_versao.txt", "r", encoding="utf-8") as f:
+                conteudo = f.read().strip()
+                if conteudo:
+                    versao_online = conteudo
+        except:
+            pass
+
+    # Se mesmo assim não houver URL de download, impede a execução nula
+    if not download_url:
+        messagebox.showerror("Erro", "O atualizador foi iniciado sem parâmetros válidos de download.")
+        return
     
     root = Tk()
     app = UpdaterGUI(root, download_url, versao_online)
