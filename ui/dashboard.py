@@ -197,8 +197,17 @@ class DashboardApp(ctk.CTkToplevel):
         ctk.CTkLabel(self, text=f"Bem vindo {self.usuario_atual}!", font=self.fonte_titulo_dash, text_color=cor_texto_principal).pack(pady=(2, 0))
         ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 14, "italic"), text_color=cor_subtitulo).pack(pady=(0, 2))
 
-        card_dash = ctk.CTkFrame(self, corner_radius=20, border_width=1, border_color=tema["destaque"], fg_color=tema["card"])
-        card_dash.pack(expand=True, padx=40, pady=(0, 5), fill="both")
+        # 🚀 ALTERAÇÃO: Transformado em um frame rolável para telas pequenas
+        card_dash = ctk.CTkScrollableFrame(
+            self, 
+            corner_radius=28, 
+            border_width=1, 
+            border_color=tema["destaque"], 
+            fg_color=tema["card"],
+            scrollbar_button_color=tema["destaque"], # Cor da barra combinando com o tema
+            scrollbar_button_hover_color="#2f6fa5"
+        )
+        card_dash.pack(expand=True, padx=35, pady=(10, 18), fill="both")
 
         # Define se o tema é claro para aplicar o contraste
         tema_ativo = self.config.get("tema_cor", "padrao")

@@ -112,9 +112,18 @@ class FiuzaEnterpriseApp(ctk.CTk):
         self.update_idletasks()
         largura = 1100
         altura = 720
-        x = int((self.winfo_screenwidth() / 2) - (largura / 2))
-        y = 0
-        self.geometry(f"{largura}x{altura}+{x}+{y}")
+        
+        # Pega a altura total do monitor do cliente
+        altura_tela = self.winfo_screenheight()
+        
+        # 🚀 Se o monitor do cliente tiver menos de 800 pixels de altura vertical,
+        # o aplicativo já abre maximizado para aproveitar cada centímetro de tela
+        if altura_tela < 800:
+            self.state("zoomed")
+        else:
+            x = int((self.winfo_screenwidth() / 2) - (largura / 2))
+            y = 10
+            self.geometry(f"{largura}x{altura}+{x}+{y}")
 
     def salvar_config(self):
         try:
