@@ -11,36 +11,32 @@ echo                 FIUZA TECHNOLOGY BUILD
 echo ==========================================================
 echo.
 
-:: ==========================================================
-:: PYTHON
-:: ==========================================================
 set PYTHON=py -3.12
 
-:: ==========================================================
-:: LIMPEZA
-:: ==========================================================
-echo Limpando builds antigos...
+echo Limpando builds antigos e processos presos...
 echo.
 
+taskkill /f /im Gerador_XML.exe >nul 2>&1
+taskkill /f /im updater.exe >nul 2>&1
+taskkill /f /im pyinstaller.exe >nul 2>&1
+
 if exist build rmdir /s /q build
+if exist build_updater rmdir /s /q build_updater
 if exist dist rmdir /s /q dist
+if exist dist_updater rmdir /s /q dist_updater
+
+if exist Gerador_XML.spec del /f /q Gerador_XML.spec
+if exist updater.spec del /f /q updater.spec
 
 for /d /r %%d in (__pycache__) do (
     if exist "%%d" rmdir /s /q "%%d"
 )
 
-if exist Gerador_XML.spec del /f /q Gerador_XML.spec
-if exist updater.spec del /f /q updater.spec
-
-echo Limpando travas residuais de memoria do Windows...
-taskkill /f /im Gerador_XML.exe >nul 2>&1
-taskkill /f /im updater.exe >nul 2>&1
-
 echo Limpeza concluida.
 echo.
 
 :: ==========================================================
-:: BUILD BUILD GERADOR_XML
+:: BUILD GERADOR_XML
 :: ==========================================================
 echo ==========================================================
 echo               GERANDO GERADOR_XML.EXE
@@ -73,16 +69,13 @@ main.py
 if errorlevel 1 (
     echo.
     echo ERRO AO GERAR GERADOR_XML.EXE
-    pause
-    exit /b
+    goto FALHA_FINAL
 )
 
-:: 🚀 TIMEOUT ESTRATÉGICO: Aguarda 2 segundos para o Windows liberar os 
-Task Handles das DLLs compartilhadas (requests, certifi) para evitar Erro de Permissao
 timeout /t 2 >nul
 
 :: ==========================================================
-:: BUILD UPDATER
+:: BUILD UPDATER (SANDBOX ISOLADO)
 :: ==========================================================
 echo.
 echo ==========================================================
@@ -98,6 +91,9 @@ if exist updater_launcher.py (
     --onefile ^
     --windowed ^
     --uac-admin ^
+    --specpath="." ^
+    --workpath="build_updater" ^
+    --distpath="dist_updater" ^
     --collect-all requests ^
     --collect-all certifi ^
     --hidden-import=updater ^
@@ -108,66 +104,52 @@ if exist updater_launcher.py (
 
 ) else (
     echo.
-    echo ERRO:
-    echo updater_launcher.py nao encontrado.
-    echo.
+    echo ERRO: updater_launcher.py nao encontrado.
+    goto FALHA_FINAL
 )
 
-:: 🚀 TIMEOUT EXTRA: Garante a liberação do arquivo criado no disco
-timeout /t 2 >nul
-
-:: ==========================================================
-:: COPIA UPDATER
-:: ==========================================================
-echo.
-echo Copiando updater...
-
-if exist dist\updater\updater.exe (
-    copy /Y dist\updater\updater.exe dist\Gerador_XML\updater.exe >nul
-    echo updater.exe copiado com sucesso para dentro do pacote estrutural.
-) else if exist dist\updater.exe (
-    copy /Y dist\updater.exe dist\Gerador_XML\updater.exe >nul
-    echo updater.exe copiado com sucesso para dentro do pacote estrutural.
-) else (
+if errorlevel 1 (
     echo.
-    echo AVISO: updater.exe nao foi encontrado para copia.
-    echo.
+    echo ERRO AO GERAR UPDATER.EXE
+    goto FALHA_FINAL
 )
 
+:: Limpeza de pastas temporárias de código, mantendo apenas os executáveis finais
+if exist build rmdir /s /q build >nul 2>&1
+if exist build_updater rmdir /s /q build_updater >nul 2>&1
+if exist updater.spec del /f /q updater.spec >nul 2>&1
+
 :: ==========================================================
-:: RESULTADO
+:: RESULTADO FINAL
 :: ==========================================================
 echo.
 echo ==========================================================
 echo                  BUILD FINALIZADA
 echo ==========================================================
 echo.
-
-if exist dist\Gerador_XML\Gerador_XML.exe (
-    echo.
-    echo BUILD GERADA COM SUCESSO!
-    echo.
-    echo Estrutura:
-    echo.
-    echo dist\Gerador_XML\
-    echo     Gerador_XML.exe
-    if exist dist\Gerador_XML\updater.exe (
-        echo     updater.exe
-    )
-    echo     assets\
-    echo     _internal\
-    echo.
-
-    explorer dist\Gerador_XML
-
-    echo msgbox "Build gerada com sucesso!",64,"Fiuza Technology" > popup.vbs
-    start /wait popup.vbs
-    del popup.vbs
-) else (
-    echo.
-    echo ERRO AO GERAR EXECUTAVEL FINAL!
-    echo.
-)
-
+echo COMPILACAO CONCLUIDA COM SUCESSO!
 echo.
-pause
+echo Como o Windows bloqueia copias automatizadas nesta pasta,
+echo faça a uniao manual para o seu instalador:
+echo.
+echo 1. Abra a pasta 'dist_updater', copie o 'updater.exe'.
+echo 2. Cole ele dentro de 'dist\Gerador_XML\'.
+echo.
+
+:: Abre as duas pastas na tela para facilitar o seu clique e arrastar
+explorer dist
+explorer dist_updater
+
+echo msgbox "Compilacao concluida! Junte os arquivos manualmente.",64,"Fiuza Technology" > popup.vbs
+start /wait popup.vbs
+del popup.vbs
+goto FIM
+
+:FALHA_FINAL
+echo.
+echo ATENCAO: O PROCESSO DE BUILD FALHOU!
+echo.
+
+:FIM
+echo Pressione qualquer tecla para fechar esta janela...
+pause >nul
