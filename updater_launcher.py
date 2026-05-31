@@ -8,10 +8,12 @@ from tkinter import Tk, Frame, Label, Button, ttk, messagebox
 from updater import baixar_atualizacao
 
 class UpdaterGUI:
-    def __init__(self, root, download_url):
+    def __init__(self, root, download_url, versao_online):
         self.root = root
         self.download_url = download_url
-        self.versao_online = "1.0.6"
+        
+        # 🚀 AGORA É DINÂMICO: Recebe diretamente o argumento real do sistema principal
+        self.versao_online = versao_online
         
         if os.path.exists("ultima_versao.txt"):
             try:
@@ -148,12 +150,17 @@ class UpdaterGUI:
         sys.exit(0)
 
 def main():
-    if len(sys.argv) < 2:
-        return
-
-    download_url = sys.argv[1]
+    # Verifica se os argumentos mínimos foram passados (Nome do script, URL e Versão)
+    if len(sys.argv) < 3:
+        # Fallback de segurança caso seja aberto manualmente sem argumentos
+        download_url = sys.argv[1] if len(sys.argv) > 1 else ""
+        versao_online = "Nova Versão"
+    else:
+        download_url = sys.argv[1]
+        versao_online = sys.argv[2] # 🚀 Captura o segundo argumento enviado
+    
     root = Tk()
-    app = UpdaterGUI(root, download_url)
+    app = UpdaterGUI(root, download_url, versao_online)
     root.mainloop()
 
 if __name__ == "__main__":
