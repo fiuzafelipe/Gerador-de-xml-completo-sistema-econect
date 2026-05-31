@@ -206,6 +206,7 @@ class DashboardApp(ctk.CTkToplevel):
         ctk.CTkLabel(self, text=f"Banco: {self.host_conectado}", font=("Segoe UI", 13, "italic"), text_color=cor_subtitulo).pack(pady=(0, 2))
 
         # CARD RESPONSIVO (Sem barra de rolagem)
+        # CARD RESPONSIVO (Frame principal que abraça tudo)
         card_dash = ctk.CTkFrame(
             self, 
             corner_radius=20, 
@@ -213,21 +214,24 @@ class DashboardApp(ctk.CTkToplevel):
             border_color=tema["destaque"], 
             fg_color=tema["card"]
         )
-        # 📐 RESPONSIVIDADE: Margens externas reduzidas para dar respiro vertical
         card_dash.pack(expand=True, padx=20, pady=(4, 10), fill="both")
 
         # Define se o tema é claro para aplicar o contraste
         cor_texto_abas = "#1A202C" if tema_ativo in ["white", "padrao"] else "#FFFFFF"
 
+        # 🚀 O SEGREDO ESTÁ AQUI: Limitamos a altura da aba estaticamente.
+        # Tiramos o expand=True do pack e forçamos a aba a ocupar apenas o centro da tela, 
+        # deixando o rodapé livre e visível!
         self.tabs = ctk.CTkTabview(
             card_dash, 
             corner_radius=12, 
             segmented_button_selected_color=tema["destaque"],
             text_color=cor_texto_abas,
-            fg_color=tema["card"]
+            fg_color=tema["card"],
+            height=370 # 📐 Força o container das abas a ter um tamanho fixo seguro
         )
-        # 📐 RESPONSIVIDADE: Pady reduzido de 4 para 2
-        self.tabs.pack(fill="both", expand=True, padx=10, pady=2)
+        # Removido o expand=True para ela não roubar o espaço do botão verde
+        self.tabs.pack(fill="x", padx=10, pady=(2, 0))
 
         t_xml = self.tabs.add("Gerador de XML")
         self.tabs.add("Monitor de XML")
@@ -235,9 +239,9 @@ class DashboardApp(ctk.CTkToplevel):
         if self.nivel_acesso == "admin":
             self.tabs.add("MySQL Query")
 
-        # Container principal interno reduzido de pady=5 para 2
+        # Container interno reduzido para ganhar preciosos pixels verticais
         f_main = ctk.CTkFrame(t_xml, fg_color="transparent")
-        f_main.pack(fill="x", padx=25, pady=2)
+        f_main.pack(fill="x", padx=25, pady=0)
 
         f_top = ctk.CTkFrame(f_main, fg_color="transparent")
         f_top.pack(fill="x")
