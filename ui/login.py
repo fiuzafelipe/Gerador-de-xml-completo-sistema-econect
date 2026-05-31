@@ -139,9 +139,9 @@ class FiuzaEnterpriseApp(ctk.CTk):
         header = ctk.CTkFrame(self, height=70, fg_color="transparent", corner_radius=0)
         header.pack(fill="x")
 
-        # Ajustado a posição relx para dar espaço ao novo botão de versão
+        # Ajustado ligeiramente para acomodar o botão com o novo design
         self.frame_temas = ctk.CTkFrame(header, fg_color="transparent")
-        self.frame_temas.place(relx=0.68, rely=0.5, anchor="center")
+        self.frame_temas.place(relx=0.65, rely=0.5, anchor="center")
 
         self.criar_botao_tema(self.frame_temas, "☀ Light", "padrao").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "🌙 Dark", "dark").pack(side="left", padx=4)
@@ -149,28 +149,80 @@ class FiuzaEnterpriseApp(ctk.CTk):
         self.criar_botao_tema(self.frame_temas, "🔴 Red", "red").pack(side="left", padx=4)
         self.criar_botao_tema(self.frame_temas, "⚪ White", "white").pack(side="left", padx=4)
         
-        # 🎩 NOVO: Botão de Versão dinâmico com mensagem informativa personalizada
+        # 🎩 Botão de Versão com Design Refinado
         self.criar_botao_versao(self.frame_temas).pack(side="left", padx=4)
         
         self.criar_botao_settings(self.frame_temas).pack(side="left", padx=8)
 
     def criar_botao_versao(self, master):
-        """ Cria o botão com a numeração da versão atual ao lado dos temas """
+        """ Cria o botão de versão refinado no estilo Tag/Pill """
         return ctk.CTkButton(
             master,
-            text=f"v{APP_VERSION}",
-            width=75,
-            height=34,
-            corner_radius=18,
-            fg_color="#1e272e",
-            hover_color="#485460",
-            text_color="#00d2d3",
-            font=("Segoe UI", 12, "bold"),
-            command=lambda: messagebox.showinfo(
-                "Informação do Sistema", 
-                "Aplicação desenvolvida por Felipe Fiuza 🎩\n\nFiuza Technology © 2026"
-            )
+            text=f"🏷️ v{APP_VERSION}",
+            width=85,
+            height=32,
+            corner_radius=16,
+            border_width=1,
+            border_color="#3b8ed0",
+            fg_color="#1A202C",       # Grafite escuro elegante
+            hover_color="#2D3748",    # Efeito de hover suave
+            text_color="#3b8ed0",     # Texto combinando com a borda de destaque
+            font=("Segoe UI", 11, "bold"),
+            command=self.mostrar_info_desenvolvedor
         )
+
+    def mostrar_info_desenvolvedor(self):
+        """ Abre uma janela pop-up customizada e moderna com as informações do criador """
+        popup = ctk.CTkToplevel(self)
+        popup.title("Sobre o Sistema")
+        popup.geometry("380x200")
+        popup.resizable(False, False)
+        popup.configure(fg_color="#111827") # Fundo Dark Moderno
+        
+        # Centraliza o pop-up em relação à tela de login
+        popup.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() // 2) - (380 // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (200 // 2)
+        popup.geometry(f"380x200+{x}+{y}")
+        
+        # Mantém o pop-up travado na frente
+        popup.attributes("-topmost", True)
+        popup.grab_set()
+
+        # Elementos do Design Interno
+        ctk.CTkLabel(
+            popup, 
+            text="Fiuza Technology", 
+            font=("Segoe UI", 20, "bold"), 
+            text_color="#3b8ed0"
+        ).pack(pady=(25, 5))
+
+        ctk.CTkLabel(
+            popup, 
+            text="Aplicação desenvolvida por\nFelipe Fiuza 🎩", 
+            font=("Segoe UI", 14, "medium"), 
+            text_color="#E5E7EB"
+        ).pack(pady=5)
+
+        ctk.CTkLabel(
+            popup, 
+            text=f"Versão Corrente: {APP_VERSION} | Soluções em Software", 
+            font=("Segoe UI", 11, "italic"), 
+            text_color="#9CA3AF"
+        ).pack(pady=(0, 15))
+
+        ctk.CTkButton(
+            popup, 
+            text="Fechar", 
+            width=100, 
+            height=28,
+            corner_radius=6,
+            fg_color="#3b8ed0", 
+            hover_color="#2563EB",
+            text_color="#FFFFFF",
+            font=("Segoe UI", 12, "bold"),
+            command=popup.destroy
+        ).pack()
 
     def criar_botao_tema(self, master, texto, tema_nome):
         tema = self.temas[tema_nome]
