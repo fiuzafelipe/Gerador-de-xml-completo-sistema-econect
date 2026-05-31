@@ -110,20 +110,24 @@ class FiuzaEnterpriseApp(ctk.CTk):
 
     def posicionar_janela(self):
         self.update_idletasks()
-        largura = 1100
-        altura = 720
         
-        # Pega a altura total do monitor do cliente
-        altura_tela = self.winfo_screenheight()
+        # 🚀 Descobre a largura total e a altura útil máxima do monitor do cliente
+        largura_monitor = self.winfo_screenwidth()
+        altura_monitor = self.winfo_screenheight()
         
-        # 🚀 Se o monitor do cliente tiver menos de 800 pixels de altura vertical,
-        # o aplicativo já abre maximizado para aproveitar cada centímetro de tela
-        if altura_tela < 800:
-            self.state("zoomed")
-        else:
-            x = int((self.winfo_screenwidth() / 2) - (largura / 2))
-            y = 10
-            self.geometry(f"{largura}x{altura}+{x}+{y}")
+        # Define uma largura fixa ideal para o painel
+        largura_app = 1100
+        
+        # 🚀 O SEGREDO: A altura será a altura total do monitor menos 75 pixels 
+        # (espaço exato da barra de tarefas do Windows + barra de título)
+        altura_app = altura_monitor - 75
+        
+        # Centraliza na horizontal (x) e cola no topo da tela (y = 0)
+        x = int((largura_monitor / 2) - (largura_app / 2))
+        y = 0
+        
+        # Aplica a geometria dinâmica calibrada
+        self.geometry(f"{largura_app}x{altura_app}+{x}+{y}")
 
     def salvar_config(self):
         try:

@@ -46,7 +46,7 @@ class DashboardApp(ctk.CTkToplevel):
         # CONFIG (AGORA RECEPTIVA AO TEMA DO LOGIN)
         # =====================================================
         self.title("Fiuza Technology - Gerador de XML Completo")
-        self.geometry("1100x720")
+        self.geometry("1100x640")
         self.resizable(True, True)
         self.after(100, self.posicionar_janela)
 
@@ -77,11 +77,18 @@ class DashboardApp(ctk.CTkToplevel):
 
     def posicionar_janela(self):
         self.update_idletasks()
-        largura = 1100
-        altura = 720
-        x = int((self.winfo_screenwidth() / 2) - (largura / 2))
+        
+        largura_monitor = self.winfo_screenwidth()
+        altura_monitor = self.winfo_screenheight()
+        
+        largura_app = 1100
+        # 🚀 Herda dinamicamente a altura útil da tela para encostar na barra de tarefas
+        altura_app = altura_monitor - 75
+        
+        x = int((largura_monitor / 2) - (largura_app / 2))
         y = 0
-        self.geometry(f"{largura}x{altura}+{x}+{y}")
+        
+        self.geometry(f"{largura_app}x{altura_app}+{x}+{y}")
 
     def add_lbl(self, master, texto, fonte):
         # Se o tema for 'white' ou 'padrao', usa Grafite Escuro. Caso contrário, deixa o padrão do CTk
@@ -380,19 +387,42 @@ class DashboardApp(ctk.CTkToplevel):
         self.btn_compactar = ctk.CTkButton(f_path, text="Compactar", width=90, height=32, fg_color="#8e44ad", command=self.compactar_manual)
         self.btn_compactar.pack(side="left", padx=2)
 
+        # =========================================================================
+        # 🚀 RODAPÉ OPERACIONAL FIXO (Ancorado direto no card_dash, fora das abas)
+        # =========================================================================
         cor_status_gerando = "#1A202C" if tema_ativo in ["white", "padrao"] else "gray"
 
-        # 📐 RESPONSIVIDADE: Rodapé ultra colado para não estourar a tela verticalmente
-        self.lbl_gerando = ctk.CTkLabel(t_xml, text="Aguardando ação...", font=("Segoe UI", 12, "italic", "bold"), text_color=cor_status_gerando)
+        # 📐 Criamos um frame invisível de rodapé ancorado na base do card_dash
+        f_rodape = ctk.CTkFrame(card_dash, fg_color="transparent")
+        f_rodape.pack(side="bottom", fill="x", padx=20, pady=(2, 10))
+
+        # Texto de Status (Aguardando ação...)
+        self.lbl_gerando = ctk.CTkLabel(
+            f_rodape, 
+            text="Aguardando ação...", 
+            font=("Segoe UI", 12, "italic", "bold"), 
+            text_color=cor_status_gerando
+        )
         self.lbl_gerando.pack(pady=(2, 2))
 
-        self.prog_xml = ctk.CTkProgressBar(t_xml, height=10, progress_color=tema["destaque"])
+        # Barra de Progresso mais fina e elegante
+        self.prog_xml = ctk.CTkProgressBar(f_rodape, height=10, progress_color=tema["destaque"])
         self.prog_xml.set(0)
-        self.prog_xml.pack(pady=(1, 5), fill="x", padx=20)
+        self.prog_xml.pack(pady=(2, 6), fill="x", padx=15)
 
-        # 📐 RESPONSIVIDADE: Botão final reduzido de height=55 para height=42
-        self.btn_gerar_final = ctk.CTkButton(t_xml, text="GERAR XML AGORA", font=("Segoe UI", 18, "bold"), fg_color="#2d8a4e", height=42, width=480, corner_radius=12, command=self.gerar_xml_final)
-        self.btn_gerar_final.pack(pady=(0, 6))
+        # 🚀 O GRANDE BOTÃO VERDE COM ALTURA COMPACTA DE MÁXIMA VISIBILIDADE
+        self.btn_gerar_final = ctk.CTkButton(
+            f_rodape, 
+            text="GERAR XML AGORA", 
+            font=("Segoe UI", 18, "bold"), 
+            fg_color="#2d8a4e", 
+            hover_color="#216f3e",
+            height=38,            # 📐 Reduzido para 38px para garantir que caiba com folga
+            width=450, 
+            corner_radius=12, 
+            command=self.gerar_xml_final
+        )
+        self.btn_gerar_final.pack(pady=(2, 2))
 
     def atualizar_dados_loja(self, escolha):
         try:
